@@ -1,0 +1,10 @@
+{
+  "name": "NoteFlow - AI Transcription",
+  "description": "An AI-powered voice notes and transcription application.",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
