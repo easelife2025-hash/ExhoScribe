@@ -60,14 +60,15 @@ function AppContent() {
       const { storage } = await import('@/lib/firebase');
       const { ref, uploadBytesResumable, getDownloadURL } = await import('firebase/storage');
       
-      const storageRef = ref(storage, `uploads/${currentUser.uid}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '')}`);
+      const safeName = file.name ? file.name.replace(/[^a-zA-Z0-9.]/g, '') : 'upload.mp4';
+      const storageRef = ref(storage, `uploads/${currentUser.uid}/${Date.now()}_${safeName}`);
       const uploadTask = uploadBytesResumable(storageRef, file);
 
       const downloadUrl = await new Promise<string>((resolve, reject) => {
         uploadTask.on('state_changed', 
           (snapshot) => {
             const progress = 5 + (snapshot.bytesTransferred / snapshot.totalBytes) * 45;
-            setUploadTasks(prev => prev.map(t => t.id === taskId ? { ...t, progress } : t));
+            setUploadTasks(prev => prev.map(t => t.id === taskId ? { ...t, progress, status: 'uploading' } : t));
           }, 
           (error) => {
             reject(error);

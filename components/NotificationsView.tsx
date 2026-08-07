@@ -36,7 +36,7 @@ export default function NotificationsView({ onClose }: NotificationsViewProps) {
         {notifications.length === 0 ? (
           <div className="text-center mt-12 text-slate-500">
             <CheckCircle2 className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-            <p>You're all caught up!</p>
+            <p>You&apos;re all caught up!</p>
           </div>
         ) : (
           notifications.map(notif => (

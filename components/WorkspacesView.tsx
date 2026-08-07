@@ -24,31 +24,34 @@ export default function WorkspacesView({ onClose, notes, onOpenNote }: Workspace
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
 
-  useEffect(() => {
-    if (user) {
-      loadWorkspaces();
-    }
-  }, [user]);
-
   const loadWorkspaces = async () => {
     if (!user) return;
     const ws = await fetchWorkspaces(user.uid);
     setWorkspaces(ws);
-    if (ws.length > 0 && !activeWorkspace) {
-      setActiveWorkspace(ws[0]);
+    if (ws.length > 0) {
+      setActiveWorkspace(prev => prev || ws[0]);
     }
   };
 
   useEffect(() => {
-    if (activeWorkspace) {
-      loadFolders(activeWorkspace.id);
+    if (user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      loadWorkspaces();
     }
-  }, [activeWorkspace]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const loadFolders = async (workspaceId: string) => {
     const f = await fetchFolders(workspaceId);
     setFolders(f);
   };
+
+  useEffect(() => {
+    if (activeWorkspace) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      loadFolders(activeWorkspace.id);
+    }
+  }, [activeWorkspace]);
 
   const handleCreateWorkspace = async () => {
     if (!user || !newWorkspaceName.trim()) return;

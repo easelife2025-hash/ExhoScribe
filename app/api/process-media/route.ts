@@ -6,11 +6,11 @@ import path from 'path';
 import { Readable } from 'stream';
 import { pipeline } from 'stream/promises';
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-
 export async function POST(req: NextRequest) {
   let tmpFilePath = '';
   try {
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+    
     const { fileUrl, fileName, mimeType, model } = await req.json();
 
     if (!fileUrl) {
@@ -24,12 +24,12 @@ export async function POST(req: NextRequest) {
     }
 
     const tmpDir = os.tmpdir();
-    tmpFilePath = path.join(tmpDir, `${Date.now()}-${fileName.replace(/[^a-zA-Z0-9.]/g, '')}`);
+    const safeName = fileName || 'upload.tmp';
+    tmpFilePath = path.join(tmpDir, `${Date.now()}-${safeName.replace(/[^a-zA-Z0-9.]/g, '')}`);
     
-    // Stream to file to avoid memory limits
+    // Save to temp file using streams
     if (fileResponse.body) {
       const fileStream = fs.createWriteStream(tmpFilePath);
-      // convert web ReadableStream to Node Readable
       const readableWebStream = fileResponse.body as any;
       await pipeline(Readable.fromWeb(readableWebStream), fileStream);
     } else {
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     // 2. Upload the file to Gemini using ai.files.upload
     const uploadResult = await ai.files.upload({
       file: tmpFilePath,
-      config: { mimeType },
+      config: { mimeType: mimeType },
     });
     
     // Create prompt for AI

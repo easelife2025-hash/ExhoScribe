@@ -17,12 +17,18 @@ export default function SearchView({ notes, onClose, onOpenNote }: SearchViewPro
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
 
   useEffect(() => {
+    let mounted = true;
     const saved = localStorage.getItem('recentSearches');
     if (saved) {
       try {
-        setRecentSearches(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        if (mounted) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setRecentSearches(parsed);
+        }
       } catch (e) {}
     }
+    return () => { mounted = false; };
   }, []);
 
   const saveRecentSearch = (q: string) => {
@@ -207,7 +213,7 @@ export default function SearchView({ notes, onClose, onOpenNote }: SearchViewPro
                 
                 {result.matchedContext && (
                   <p className="text-sm text-slate-500 line-clamp-2 leading-relaxed italic">
-                    "...{highlightMatch(result.matchedContext, query)}..."
+                    &quot;...{highlightMatch(result.matchedContext, query)}...&quot;
                   </p>
                 )}
 
@@ -222,7 +228,7 @@ export default function SearchView({ notes, onClose, onOpenNote }: SearchViewPro
             
             {results.length === 0 && (
               <div className="text-center mt-12">
-                <p className="text-slate-500 font-medium">No results found for "{query}"</p>
+                <p className="text-slate-500 font-medium">No results found for &quot;{query}&quot;</p>
                 <p className="text-sm text-slate-400 mt-1">Try a different keyword or filter.</p>
               </div>
             )}
