@@ -72,6 +72,34 @@ export default function CalendarView() {
     allEvents.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
     setEvents(allEvents);
     setLoading(false);
+
+    if (allEvents.length > 0 && auth.currentUser) {
+      const firstEvent = allEvents[0];
+      const title = 'Upcoming Meeting';
+      const message = `${firstEvent.title} is starting soon.`;
+      
+      const { saveNotification } = await import('@/lib/db');
+      await saveNotification({
+        id: Date.now().toString(),
+        userId: auth.currentUser.uid,
+        title,
+        message,
+        read: false,
+        createdAt: new Date().toISOString()
+      });
+
+      try {
+        fetch('/api/notifications/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: auth.currentUser.uid,
+            title,
+            body: message
+          })
+        });
+      } catch (err) {}
+    }
   }, [googleToken, msToken]);
 
   useEffect(() => {

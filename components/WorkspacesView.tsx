@@ -5,7 +5,7 @@ import { Workspace, Folder, Note } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { Users, Folder as FolderIcon, Plus, Settings, ChevronRight, Share2, MoreVertical, FileText } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
-import { saveWorkspace, fetchWorkspaces, saveFolder, fetchFolders } from '../lib/db';
+import { saveWorkspace, fetchWorkspaces, saveFolder, fetchFolders, saveNotification } from '../lib/db';
 
 interface WorkspacesViewProps {
   onClose: () => void;
@@ -23,6 +23,55 @@ export default function WorkspacesView({ onClose, notes, onOpenNote }: Workspace
   const [newWorkspaceName, setNewWorkspaceName] = useState('');
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteRole, setInviteRole] = useState<'editor' | 'viewer' | 'owner'>('editor');
+
+  const handleInvite = async () => {
+    if (!activeWorkspace || !inviteEmail.trim() || !user) return;
+    const targetEmail = inviteEmail.trim();
+    const newMembers = [...activeWorkspace.members, { userId: targetEmail, role: inviteRole, email: targetEmail }];
+    const updated = { ...activeWorkspace, members: newMembers };
+    await saveWorkspace(updated);
+    setActiveWorkspace(updated);
+    setInviteEmail('');
+
+    const title = `You've been invited`;
+    const message = `${user.displayName || user.email} invited you to workspace "${activeWorkspace.name}" as ${inviteRole}`;
+    
+    // Save to DB (mock logic since we don't know the exact user ID, using email)
+    const notification = {
+      id: Date.now().toString(),
+      userId: targetEmail,
+      title,
+      message,
+      read: false,
+      createdAt: new Date().toISOString()
+    };
+    try {
+      await saveNotification(notification);
+      // Simulate saving for target user
+      await fetch('/api/notifications/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: targetEmail,
+          title,
+          body: message
+        })
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleRemoveMember = async (userId: string) => {
+    if (!activeWorkspace) return;
+    const newMembers = activeWorkspace.members.filter(m => m.userId !== userId);
+    const updated = { ...activeWorkspace, members: newMembers };
+    await saveWorkspace(updated);
+    setActiveWorkspace(updated);
+  };
 
   const loadWorkspaces = async () => {
     if (!user) return;
@@ -156,11 +205,57 @@ export default function WorkspacesView({ onClose, notes, onOpenNote }: Workspace
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button className="p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors"><Share2 className="w-5 h-5" /></button>
+                    <button onClick={() => setShowShareModal(true)} className="p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors"><Share2 className="w-5 h-5" /></button>
                     <button className="p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors"><Settings className="w-5 h-5" /></button>
                   </div>
                 </div>
               </div>
+
+              {showShareModal && (
+                <div className="absolute inset-0 bg-slate-900/20 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+                  <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl border border-slate-100">
+                    <h3 className="text-lg font-semibold text-slate-900 mb-4">Share Workspace</h3>
+                    <div className="flex gap-2 mb-6">
+                      <input 
+                        type="email" 
+                        placeholder="Invite by email..." 
+                        value={inviteEmail}
+                        onChange={e => setInviteEmail(e.target.value)}
+                        className="flex-1 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                      />
+                      <select 
+                        value={inviteRole}
+                        onChange={e => setInviteRole(e.target.value as any)}
+                        className="border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none"
+                      >
+                        <option value="editor">Editor</option>
+                        <option value="viewer">Viewer</option>
+                        <option value="owner">Owner</option>
+                      </select>
+                      <button onClick={handleInvite} className="bg-brand-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-brand-700">Invite</button>
+                    </div>
+                    <div className="space-y-3 max-h-60 overflow-y-auto">
+                      {activeWorkspace.members.map((m, i) => (
+                        <div key={i} className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-medium text-slate-600">
+                              {(m.email || 'U')[0].toUpperCase()}
+                            </div>
+                            <div>
+                              <div className="text-sm font-medium text-slate-900">{m.email || 'Unknown User'}</div>
+                              <div className="text-xs text-slate-500 capitalize">{m.role}</div>
+                            </div>
+                          </div>
+                          {m.userId !== user?.uid && (
+                            <button onClick={() => handleRemoveMember(m.userId)} className="text-xs text-red-500 hover:bg-red-50 px-2 py-1 rounded-md">Remove</button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    <button onClick={() => setShowShareModal(false)} className="w-full mt-6 py-2 bg-slate-100 text-slate-700 rounded-xl text-sm font-medium hover:bg-slate-200">Done</button>
+                  </div>
+                </div>
+              )}
 
               {/* Folders and Notes */}
               <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-8">

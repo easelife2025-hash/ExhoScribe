@@ -34,4 +34,16 @@ googleProvider.addScope('https://www.googleapis.com/auth/drive.readonly');
 const db = getFirestore(app);
 
 const storage = getStorage(app);
+
+import { getMessaging, isSupported } from "firebase/messaging";
+export const getMessagingInstance = async () => {
+  if (typeof window === 'undefined') return null;
+  const supported = await isSupported();
+  if (supported) {
+    return getMessaging(app);
+  }
+  return null;
+};
+
 export { app, auth, googleProvider, db, storage };
+

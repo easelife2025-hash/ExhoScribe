@@ -120,11 +120,36 @@ function AppContent() {
         sentiment: aiResult.sentiment || 'Neutral',
       };
 
-      const { saveNote } = await import('@/lib/db');
+      const { saveNote, saveNotification } = await import('@/lib/db');
       await saveNote(currentUser.uid, newNote);
       setNotes(prev => [newNote, ...prev]);
 
       setUploadTasks(prev => prev.map(t => t.id === taskId ? { ...t, progress: 100, status: 'completed' } : t));
+
+      // Trigger notification for processing completion
+      const title = 'Processing Complete';
+      const message = `Finished processing "${newNote.title}"`;
+      const notif = {
+        id: Date.now().toString(),
+        userId: currentUser.uid,
+        title,
+        message,
+        read: false,
+        createdAt: new Date().toISOString()
+      };
+      await saveNotification(notif);
+      
+      try {
+        await fetch('/api/notifications/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: currentUser.uid,
+            title,
+            body: message
+          })
+        });
+      } catch(e) {}
 
     } catch (error: any) {
       console.error('Upload error:', error);

@@ -9,6 +9,7 @@ export type Note = {
   isPinned?: boolean;
   isToday?: boolean;
   aiHighlights?: string[];
+  sharedNotes?: string;
   chapters?: Array<{ title: string; time: string; summary: string }>;
   actionItems?: string[];
   decisions?: string[];

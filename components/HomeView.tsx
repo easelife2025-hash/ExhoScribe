@@ -21,9 +21,18 @@ export default function HomeView({ notes, onOpenNote, onOpenUpload, onOpenSearch
 
   const filters = ['All', 'Work', 'Personal', 'Shared', 'Pinned'];
 
-  const pinnedNotes = notes.filter(n => n.isPinned);
-  const todayNotes = notes.filter(n => n.isToday);
-  const recentNotes = notes.filter(n => !n.isToday && !n.isPinned);
+  const filteredNotes = notes.filter(n => {
+    if (activeFilter === 'All') return true;
+    if (activeFilter === 'Pinned') return n.isPinned;
+    if (activeFilter === 'Work' || activeFilter === 'Personal' || activeFilter === 'Shared') {
+      return n.tags?.includes(activeFilter);
+    }
+    return true;
+  });
+
+  const pinnedNotes = filteredNotes.filter(n => n.isPinned);
+  const todayNotes = filteredNotes.filter(n => n.isToday);
+  const recentNotes = filteredNotes.filter(n => !n.isToday && !n.isPinned);
   const activeUploads = uploadTasks.filter(t => t.status === 'uploading' || t.status === 'processing');
 
   return (

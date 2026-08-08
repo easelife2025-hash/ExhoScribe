@@ -1,45 +1,133 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { Note, Comment } from '../types';
-import { Play, Pause, Bookmark, Download, Sparkles, Target, Edit3, ListTodo, CheckSquare, Search, ChevronLeft, Hash, MessageCircle, Send } from 'lucide-react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { Note, Comment, Notification } from '../types';
+import { Play, Pause, Bookmark, Download, Sparkles, Target, Edit3, ListTodo, CheckSquare, Search, ChevronLeft, Hash, MessageCircle, Send, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../lib/AuthContext';
-import { saveComment, subscribeToComments } from '../lib/db';
+import { saveComment, subscribeToComments, subscribeToNote, updateNote, saveNotification } from '../lib/db';
 
 interface TranscriptViewProps {
   note: Note;
   onBack: () => void;
 }
 
-export default function TranscriptView({ note, onBack }: TranscriptViewProps) {
+export default function TranscriptView({ note: initialNote, onBack }: TranscriptViewProps) {
   const { user } = useAuth();
+  const [note, setNote] = useState<Note>(initialNote);
   const [activeTab, setActiveTab] = useState<'summary' | 'transcript' | 'details' | 'notes' | 'comments'>('summary');
   const [searchQuery, setSearchQuery] = useState('');
   const [bookmarks, setBookmarks] = useState<Set<number>>(new Set());
-  const [userNotes, setUserNotes] = useState(note.summary || 'Add your personal notes here...');
+  const [userNotes, setUserNotes] = useState(initialNote.sharedNotes || initialNote.summary || 'Add your shared notes here...');
   const [isPlaying, setIsPlaying] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
   
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    const unsubscribe = subscribeToNote(user.uid, initialNote.id, (updatedNote) => {
+      if (updatedNote) {
+        setNote(updatedNote);
+        if (updatedNote.sharedNotes !== undefined && document.activeElement?.id !== 'shared-notes-input') {
+          setUserNotes(updatedNote.sharedNotes);
+        }
+      }
+    });
+    return () => unsubscribe();
+  }, [user, initialNote.id]);
 
   useEffect(() => {
     const unsubscribe = subscribeToComments(note.id, setComments);
     return () => unsubscribe();
   }, [note.id]);
 
+  const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const val = e.target.value;
+    setUserNotes(val);
+    
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = setTimeout(async () => {
+      if (user) {
+        await updateNote(user.uid, note.id, { sharedNotes: val });
+      }
+    }, 1000);
+  };
+
   const handleAddComment = async () => {
     if (!user || !newComment.trim()) return;
+    
+    // Parse mentions like @example@email.com
+    const mentionRegex = /@([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/g;
+    const mentions: string[] = [];
+    let match;
+    while ((match = mentionRegex.exec(newComment)) !== null) {
+      mentions.push(match[1]);
+    }
+
     const comment: Comment = {
       id: Date.now().toString(),
       noteId: note.id,
       userId: user.uid,
       userName: user.displayName || user.email || 'Unknown',
       text: newComment,
+      mentions,
       createdAt: new Date().toISOString(),
     };
     await saveComment(comment);
+    
+    // Create notifications for mentioned users (simulated by using email as userId for now if actual userId is unknown)
+    for (const email of mentions) {
+      const title = `${user.displayName || user.email} mentioned you`;
+      const message = `In "${note.title}": ${newComment.substring(0, 50)}...`;
+      
+      const notification: Notification = {
+        id: Date.now().toString() + Math.random().toString(36).substring(7),
+        userId: email, // Assuming they might query by email if userId is unknown or we just store it
+        title,
+        message,
+        read: false,
+        createdAt: new Date().toISOString(),
+      };
+      // For a proper system we'd look up the user by email, here we mock saving it with the email as key 
+      await saveNotification({ ...notification, userId: email });
+      
+      // Trigger push notification
+      try {
+        await fetch('/api/notifications/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: email,
+            title,
+            body: message,
+          })
+        });
+      } catch (err) {
+        console.error("Failed to send push notification", err);
+      }
+
+      // To see it locally during demo, also notify ourselves if we didn't mention ourselves
+      if (email !== user.email) {
+         await saveNotification({ ...notification, userId: user.uid, title: `You mentioned ${email}` });
+         try {
+           await fetch('/api/notifications/send', {
+             method: 'POST',
+             headers: { 'Content-Type': 'application/json' },
+             body: JSON.stringify({
+               userId: user.uid,
+               title: `You mentioned ${email}`,
+               body: message,
+             })
+           });
+         } catch (err) {
+           console.error("Failed to send push notification to self", err);
+         }
+      }
+    }
+    
     setNewComment('');
   };
 
@@ -138,7 +226,7 @@ export default function TranscriptView({ note, onBack }: TranscriptViewProps) {
           <TabButton active={activeTab === 'transcript'} onClick={() => setActiveTab('transcript')} icon={Edit3} label="Transcript" />
           <TabButton active={activeTab === 'details'} onClick={() => setActiveTab('details')} icon={Target} label="Details" />
           <TabButton active={activeTab === 'comments'} onClick={() => setActiveTab('comments')} icon={MessageCircle} label="Comments" />
-          <TabButton active={activeTab === 'notes'} onClick={() => setActiveTab('notes')} icon={Edit3} label="My Notes" />
+          <TabButton active={activeTab === 'notes'} onClick={() => setActiveTab('notes')} icon={Edit3} label="Shared Notes" />
         </div>
 
         <div className="flex-1 overflow-y-auto no-scrollbar pb-10">
@@ -169,9 +257,36 @@ export default function TranscriptView({ note, onBack }: TranscriptViewProps) {
                       </h3>
                       <ul className="space-y-2">
                         {note.actionItems.map((item, i) => (
-                          <li key={i} className="flex gap-3 text-sm text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                          <li key={i} className="flex gap-3 items-start text-sm text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-100">
                             <CheckSquare className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
-                            <span>{item}</span>
+                            <span className="flex-1">{item}</span>
+                            <button 
+                              onClick={async () => {
+                                if (!user) return;
+                                const title = 'Task Deadline Reminder';
+                                const message = `Reminder for task: "${item}"`;
+                                const { saveNotification } = await import('@/lib/db');
+                                await saveNotification({
+                                  id: Date.now().toString(),
+                                  userId: user.uid,
+                                  title,
+                                  message,
+                                  read: false,
+                                  createdAt: new Date().toISOString()
+                                });
+                                try {
+                                  await fetch('/api/notifications/send', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ userId: user.uid, title, body: message })
+                                  });
+                                } catch (e) {}
+                                alert("Reminder set!");
+                              }}
+                              className="text-xs text-brand-600 font-medium hover:underline shrink-0"
+                            >
+                              Remind Me
+                            </button>
                           </li>
                         ))}
                       </ul>
@@ -318,11 +433,12 @@ export default function TranscriptView({ note, onBack }: TranscriptViewProps) {
               {activeTab === 'notes' && (
                 <div className="flex flex-col gap-4 h-full">
                   <div className="flex items-center gap-2 text-sm font-semibold text-slate-800 uppercase tracking-wider">
-                    <Edit3 className="w-4 h-4 text-brand-500" /> Personal Notes
+                    <Edit3 className="w-4 h-4 text-brand-500" /> Shared Notes
                   </div>
                   <textarea
+                    id="shared-notes-input"
                     value={userNotes}
-                    onChange={(e) => setUserNotes(e.target.value)}
+                    onChange={handleNotesChange}
                     className="w-full flex-1 min-h-[300px] bg-slate-50 border border-slate-100 rounded-xl p-4 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all resize-none"
                     placeholder="Type your notes here..."
                   />
