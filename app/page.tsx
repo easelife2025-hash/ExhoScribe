@@ -28,13 +28,17 @@ function AppContent() {
   }, [uploadTasks]);
 
   useEffect(() => {
+    let unsubscribe: (() => void) | undefined;
     if (user) {
-      import('@/lib/db').then(({ fetchNotes }) => {
-        fetchNotes(user.uid).then(fetchedNotes => {
+      import('@/lib/db').then(({ subscribeToNotes }) => {
+        unsubscribe = subscribeToNotes(user.uid, (fetchedNotes) => {
           setNotes(fetchedNotes);
-        }).catch(err => console.error("Error fetching notes:", err));
+        }, (err) => console.error("Error fetching notes:", err));
       });
     }
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
   }, [user]);
 
   const handleOpenNote = (note: Note) => {

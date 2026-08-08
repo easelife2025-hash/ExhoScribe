@@ -1,7 +1,10 @@
 import { initializeApp, getApps } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, initializeAuth, browserLocalPersistence, inMemoryPersistence, Auth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, Firestore, enableIndexedDbPersistence, enableMultiTabIndexedDbPersistence, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
 import { getStorage } from "firebase/storage";
+import { getFunctions } from "firebase/functions";
+import { getAnalytics, isSupported as isAnalyticsSupported } from "firebase/analytics";
+import { getMessaging, isSupported as isMessagingSupported } from "firebase/messaging";
 import firebaseConfigJson from '../firebase-applet-config.json';
 
 const firebaseConfig = {
@@ -31,19 +34,36 @@ if (getApps().length === 1) {
 const googleProvider = new GoogleAuthProvider();
 googleProvider.addScope('https://www.googleapis.com/auth/calendar');
 googleProvider.addScope('https://www.googleapis.com/auth/drive.readonly');
-const db = getFirestore(app);
+
+// Initialize Firestore with offline persistence
+let db: Firestore;
+try {
+  db = initializeFirestore(app, {
+    localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+  });
+} catch (e) {
+  db = getFirestore(app);
+}
 
 const storage = getStorage(app);
+const functions = getFunctions(app);
 
-import { getMessaging, isSupported } from "firebase/messaging";
+let analytics = null;
+if (typeof window !== 'undefined') {
+  isAnalyticsSupported().then(supported => {
+    if (supported) {
+      analytics = getAnalytics(app);
+    }
+  });
+}
+
 export const getMessagingInstance = async () => {
   if (typeof window === 'undefined') return null;
-  const supported = await isSupported();
+  const supported = await isMessagingSupported();
   if (supported) {
     return getMessaging(app);
   }
   return null;
 };
 
-export { app, auth, googleProvider, db, storage };
-
+export { app, auth, googleProvider, db, storage, functions, analytics };
