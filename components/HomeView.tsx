@@ -168,7 +168,7 @@ export default function HomeView({ notes, onOpenNote, onOpenUpload, onOpenSearch
                   <h4 className="font-display font-semibold text-slate-900 mb-2 truncate relative z-10">{note.title}</h4>
                   <div className="space-y-2 relative z-10">
                      {(note.aiHighlights || note.actionItems || note.decisions || [note.summary]).slice(0, 2).map((highlight, idx) => (
-                       <p key={idx} className="text-[13px] text-slate-700 leading-relaxed pl-3 relative before:content-[''] before:absolute before:left-0 before:top-2 before:w-1 before:h-1 before:bg-brand-500 before:rounded-full line-clamp-2">
+                       <p key={idx} className="text-sm font-semibold text-slate-900 leading-relaxed pl-3 relative before:content-[''] before:absolute before:left-0 before:top-2 before:w-1 before:h-1 before:bg-brand-500 before:rounded-full line-clamp-2">
                          {highlight}
                        </p>
                      ))}
@@ -228,7 +228,7 @@ function NoteCard({ note, onClick, index }: { note: Note; onClick: () => void; i
         </div>
       </div>
       
-      <p className="text-sm text-slate-500 line-clamp-2 leading-relaxed">{note.summary}</p>
+      <p className="text-sm font-semibold text-slate-900 line-clamp-2 leading-relaxed">{note.summary}</p>
       
       <div className="flex items-center justify-between mt-1">
         <div className="flex items-center gap-4">

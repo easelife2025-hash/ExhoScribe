@@ -26,7 +26,7 @@ export type UploadTask = {
   id: string;
   file: File;
   progress: number;
-  status: 'pending' | 'uploading' | 'processing' | 'completed' | 'failed';
+  status: 'pending' | 'uploading' | 'paused' | 'processing' | 'completed' | 'failed';
   error?: string;
 };
 

@@ -8,7 +8,6 @@ interface RecordingViewProps {
   onSave: (file: File) => void;
 }
 
-const mockLiveTranscript: string[] = [];
 
 type RecordingState = 'prompting' | 'denied' | 'recording' | 'paused' | 'uploading';
 
@@ -126,26 +125,6 @@ export default function RecordingView({ onClose, onSave }: RecordingViewProps) {
     }
     return () => clearInterval(interval);
   }, [recordingState]);
-
-  // Simulate incoming transcript
-  useEffect(() => {
-    if (recordingState !== 'recording') return;
-    
-    let currentIndex = 0;
-    const interval = setInterval(() => {
-      if (currentIndex < mockLiveTranscript.length) {
-        setTranscriptSegments(prev => [...prev, mockLiveTranscript[currentIndex]]);
-        currentIndex++;
-      }
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, [recordingState]);
-
-  // Handle uploading progress
-  useEffect(() => {
-    // Simulated upload removed
-  }, []);
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60).toString().padStart(2, '0');

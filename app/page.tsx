@@ -22,6 +22,7 @@ function AppContent() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [uploadTasks, setUploadTasks] = useState<UploadTask[]>([]);
   const uploadTasksRef = useRef(uploadTasks);
+  const firebaseTasksRef = useRef<Map<string, any>>(new Map());
   
   useEffect(() => {
     uploadTasksRef.current = uploadTasks;
@@ -58,56 +59,62 @@ function AppContent() {
 
   const processUpload = useCallback(async (taskId: string, file: File, currentUser: any) => {
     try {
-      setUploadTasks(prev => prev.map(t => t.id === taskId ? { ...t, progress: 5, status: 'uploading' } : t));
+      setUploadTasks(prev => prev.map(t => t.id === taskId ? { ...t, progress: 0, status: 'uploading' } : t));
 
-      // 1. Upload to Firebase Storage
-      const { storage } = await import('@/lib/firebase');
-      const { ref, uploadBytesResumable, getDownloadURL } = await import('firebase/storage');
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('model', 'gemini-2.5-pro');
       
-      const safeName = file.name ? file.name.replace(/[^a-zA-Z0-9.]/g, '') : 'upload.mp4';
-      const storageRef = ref(storage, `uploads/${currentUser.uid}/${Date.now()}_${safeName}`);
-      const uploadTask = uploadBytesResumable(storageRef, file);
-
-      const downloadUrl = await new Promise<string>((resolve, reject) => {
-        uploadTask.on('state_changed', 
-          (snapshot) => {
-            const progress = 5 + (snapshot.bytesTransferred / snapshot.totalBytes) * 45;
+      const aiResult = await new Promise<any>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        
+        xhr.upload.addEventListener('progress', (event) => {
+          if (event.lengthComputable) {
+            const progress = (event.loaded / event.total) * 100;
             setUploadTasks(prev => prev.map(t => t.id === taskId ? { ...t, progress, status: 'uploading' } : t));
-          }, 
-          (error) => {
-            reject(error);
-          }, 
-          async () => {
-            const url = await getDownloadURL(uploadTask.snapshot.ref);
-            resolve(url);
           }
-        );
+        });
+
+        xhr.addEventListener('load', () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const response = JSON.parse(xhr.responseText);
+              resolve(response);
+            } catch (e) {
+              reject(new Error('Invalid response from server'));
+            }
+          } else {
+            try {
+              const response = JSON.parse(xhr.responseText);
+              reject(new Error(response.error || 'Failed to process media'));
+            } catch (e) {
+              reject(new Error('Failed to process media'));
+            }
+          }
+        });
+
+        xhr.addEventListener('error', () => {
+          reject(new Error('Network error during upload'));
+        });
+
+        xhr.addEventListener('abort', () => {
+          reject(new Error('Upload cancelled'));
+        });
+
+        xhr.open('POST', '/api/process-media');
+        
+        firebaseTasksRef.current.set(taskId, {
+          cancel: () => xhr.abort()
+        });
+        
+        xhr.send(formData);
+        
+        xhr.upload.addEventListener('load', () => {
+           setUploadTasks(prev => prev.map(t => t.id === taskId ? { ...t, progress: 100, status: 'processing' } : t));
+        });
       });
 
-      setUploadTasks(prev => prev.map(t => t.id === taskId ? { ...t, progress: 50, status: 'processing' } : t));
-
-      // 2. Send URL to API to process
-      const response = await fetch('/api/process-media', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          fileUrl: downloadUrl,
-          fileName: file.name,
-          mimeType: file.type,
-          model: 'gemini-3.6-flash'
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to process media');
-      }
-
-      setUploadTasks(prev => prev.map(t => t.id === taskId ? { ...t, progress: 80 } : t));
-
-      const aiResult = await response.json();
+      setUploadTasks(prev => prev.map(t => t.id === taskId ? { ...t, progress: 100 } : t));
 
       const newNote: Note = {
         id: Date.now().toString() + Math.random().toString(36).substring(2),
@@ -157,7 +164,11 @@ function AppContent() {
 
     } catch (error: any) {
       console.error('Upload error:', error);
-      setUploadTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: 'failed', error: error.message || 'Upload failed' } : t));
+      if (error?.message === 'Upload cancelled') {
+         setUploadTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: 'failed', error: 'Upload cancelled' } : t));
+      } else {
+         setUploadTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: 'failed', error: error.message || 'Upload failed' } : t));
+      }
     }
   }, []);
 
@@ -187,6 +198,29 @@ function AppContent() {
       processUpload(taskId, task.file, user);
     }
   }, [processUpload, user]);
+
+  const pauseUploadTask = useCallback((taskId: string) => {
+    const task = firebaseTasksRef.current.get(taskId);
+    if (task && typeof task.pause === 'function') {
+      task.pause();
+    }
+  }, []);
+
+  const resumeUploadTask = useCallback((taskId: string) => {
+    const task = firebaseTasksRef.current.get(taskId);
+    if (task && typeof task.resume === 'function') {
+      task.resume();
+    }
+  }, []);
+
+  const cancelUploadTask = useCallback((taskId: string) => {
+    const task = firebaseTasksRef.current.get(taskId);
+    if (task && typeof task.cancel === 'function') {
+      task.cancel();
+    } else {
+      setUploadTasks(prev => prev.filter(t => t.id !== taskId));
+    }
+  }, []);
 
   if (loading) {
     return <div className="flex-1 w-full h-[100dvh] bg-slate-50 flex items-center justify-center">
@@ -330,6 +364,9 @@ function AppContent() {
                 onAddTasks={addUploadTasks}
                 onRetryTask={retryUploadTask}
                 onRemoveTask={removeUploadTask}
+                onPauseTask={pauseUploadTask}
+                onResumeTask={resumeUploadTask}
+                onCancelTask={cancelUploadTask}
               />
             </motion.div>
           )}

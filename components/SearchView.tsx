@@ -212,7 +212,7 @@ export default function SearchView({ notes, onClose, onOpenNote }: SearchViewPro
                 </div>
                 
                 {result.matchedContext && (
-                  <p className="text-sm text-slate-500 line-clamp-2 leading-relaxed italic">
+                  <p className="text-sm font-semibold text-slate-900 line-clamp-2 leading-relaxed italic">
                     &quot;...{highlightMatch(result.matchedContext, query)}...&quot;
                   </p>
                 )}

@@ -6,44 +6,46 @@ import path from 'path';
 import { Readable } from 'stream';
 import { pipeline } from 'stream/promises';
 
+export const maxDuration = 300;
+
 export async function POST(req: NextRequest) {
   let tmpFilePath = '';
   try {
-    const body = await req.json();
-    const { fileUrl, fileName, mimeType, model } = body;
+    const formData = await req.formData();
+    const file = formData.get('file') as File | null;
+    const model = formData.get('model') as string || 'gemini-2.5-pro';
     
-    if (!fileUrl) {
+    if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
     
-    // 1. Download file from Firebase Storage URL to a temporary file
-    const fileResponse = await fetch(fileUrl);
-    if (!fileResponse.ok) {
-        const errText = await fileResponse.text();
-        throw new Error(`Failed to download file from storage: ${fileResponse.status} ${fileResponse.statusText}. Details: ${errText}`);
-    }
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
 
     const tmpDir = os.tmpdir();
-    const safeName = fileName ? fileName.replace(/[^a-zA-Z0-9.]/g, '') : 'upload.tmp';
+    const safeName = file.name ? file.name.replace(/[^a-zA-Z0-9.]/g, '') : 'upload.tmp';
     tmpFilePath = path.join(tmpDir, `${Date.now()}-${safeName}`);
     
-    const arrayBuffer = await fileResponse.arrayBuffer();
-    fs.writeFileSync(tmpFilePath, Buffer.from(arrayBuffer));
+    fs.writeFileSync(tmpFilePath, buffer);
 
     // 2. Upload the file to Gemini using ai.files.upload
     const uploadResult = await ai.files.upload({
       file: tmpFilePath,
-      config: { mimeType: mimeType },
+      config: { mimeType: file.type },
     });
+    
+    if (!uploadResult.name) {
+      throw new Error('Upload failed: missing file name from Gemini API');
+    }
     
     // 3. Poll until file is ACTIVE
     let fileState = await ai.files.get({ name: uploadResult.name });
     let attempts = 0;
     while (fileState.state === 'PROCESSING' && attempts < 30) {
        await new Promise(resolve => setTimeout(resolve, 3000));
-       fileState = await ai.files.get({ name: uploadResult.name });
+       fileState = await ai.files.get({ name: uploadResult.name as string });
        attempts++;
     }
     if (fileState.state === 'FAILED' || fileState.state === 'PROCESSING') {
@@ -75,7 +77,7 @@ Return the result in this exact JSON structure:
     while (generateAttempts < 3) {
       try {
         response = await ai.models.generateContent({
-          model: model || 'gemini-3.6-flash',
+          model: model || 'gemini-2.5-pro',
           contents: [
             {
               fileData: {
@@ -98,6 +100,10 @@ Return the result in this exact JSON structure:
         }
         await new Promise(resolve => setTimeout(resolve, 3000));
       }
+    }
+
+    if (!response) {
+      throw new Error("Failed to generate content: response is undefined after all attempts.");
     }
 
     const resultText = response.text;

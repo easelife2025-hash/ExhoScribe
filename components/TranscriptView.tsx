@@ -248,7 +248,7 @@ export default function TranscriptView({ note: initialNote, onBack }: Transcript
                       <Sparkles className="w-4 h-4 text-teal-600" />
                       <h3 className="text-sm font-semibold text-teal-900 uppercase tracking-wider">AI Summary</h3>
                     </div>
-                    <p className="text-sm text-slate-700 leading-relaxed relative z-10">{note.summary}</p>
+                    <p className="text-base font-semibold text-slate-900 leading-relaxed relative z-10">{note.summary}</p>
                   </div>
                   {note.actionItems && note.actionItems.length > 0 && (
                     <div>
@@ -257,9 +257,9 @@ export default function TranscriptView({ note: initialNote, onBack }: Transcript
                       </h3>
                       <ul className="space-y-2">
                         {note.actionItems.map((item, i) => (
-                          <li key={i} className="flex gap-3 items-start text-sm text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                          <li key={i} className="flex gap-3 items-start text-sm bg-slate-50 p-3 rounded-xl border border-slate-100">
                             <CheckSquare className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
-                            <span className="flex-1">{item}</span>
+                            <span className="flex-1 font-semibold text-slate-900">{item}</span>
                             <button 
                               onClick={async () => {
                                 if (!user) return;
@@ -303,7 +303,7 @@ export default function TranscriptView({ note: initialNote, onBack }: Transcript
                             <span className="text-sm font-medium text-brand-600 shrink-0 w-12">{chapter.time}</span>
                             <div>
                                <h4 className="text-sm font-semibold text-slate-900 mb-1">{chapter.title}</h4>
-                               <p className="text-xs text-slate-500">{chapter.summary}</p>
+                               <p className="text-sm font-semibold text-slate-900 leading-relaxed">{chapter.summary}</p>
                             </div>
                           </div>
                         ))}
@@ -359,7 +359,7 @@ export default function TranscriptView({ note: initialNote, onBack }: Transcript
                       <h3 className="text-sm font-semibold text-slate-800 uppercase tracking-wider flex items-center gap-2 mb-3">
                         <Target className="w-4 h-4 text-amber-500" /> Decisions Made
                       </h3>
-                      <ul className="list-disc pl-5 space-y-1.5 text-sm text-slate-700">
+                      <ul className="list-disc pl-5 space-y-1.5 text-sm font-semibold text-slate-900">
                         {note.decisions.map((item, i) => <li key={i}>{item}</li>)}
                       </ul>
                     </div>
@@ -369,7 +369,7 @@ export default function TranscriptView({ note: initialNote, onBack }: Transcript
                       <h3 className="text-sm font-semibold text-slate-800 uppercase tracking-wider flex items-center gap-2 mb-3">
                         <ListTodo className="w-4 h-4 text-blue-500" /> Tasks Identified
                       </h3>
-                      <ul className="list-disc pl-5 space-y-1.5 text-sm text-slate-700">
+                      <ul className="list-disc pl-5 space-y-1.5 text-sm font-semibold text-slate-900">
                         {note.tasks.map((item, i) => <li key={i}>{item}</li>)}
                       </ul>
                     </div>

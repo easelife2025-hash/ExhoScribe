@@ -46,6 +46,7 @@ try {
 }
 
 const storage = getStorage(app);
+storage.maxUploadRetryTime = 10000; // 10 seconds (fail fast if bucket not found/enabled)
 const functions = getFunctions(app);
 
 let analytics = null;

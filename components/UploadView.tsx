@@ -1,7 +1,7 @@
 'use client';
 import { useState, useRef } from 'react';
 import { UploadTask } from '../types';
-import { UploadCloud, X, FileAudio, FileVideo, CheckCircle2, AlertCircle, RefreshCw, XCircle } from 'lucide-react';
+import { UploadCloud, X, FileAudio, FileVideo, CheckCircle2, AlertCircle, RefreshCw, XCircle, Pause, Play } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface UploadViewProps {
@@ -10,9 +10,12 @@ interface UploadViewProps {
   onAddTasks: (files: File[]) => void;
   onRetryTask: (taskId: string) => void;
   onRemoveTask: (taskId: string) => void;
+  onPauseTask: (taskId: string) => void;
+  onResumeTask: (taskId: string) => void;
+  onCancelTask: (taskId: string) => void;
 }
 
-export default function UploadView({ onClose, tasks, onAddTasks, onRetryTask, onRemoveTask }: UploadViewProps) {
+export default function UploadView({ onClose, tasks, onAddTasks, onRetryTask, onRemoveTask, onPauseTask, onResumeTask, onCancelTask }: UploadViewProps) {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -131,7 +134,7 @@ export default function UploadView({ onClose, tasks, onAddTasks, onRetryTask, on
                       </div>
 
                       <div className="flex items-center gap-2 shrink-0">
-                        {task.status === 'uploading' && (
+                        {(task.status === 'uploading' || task.status === 'paused') && (
                            <div className="text-xs font-medium text-brand-600 w-10 text-right">{Math.round(task.progress)}%</div>
                         )}
                         {task.status === 'processing' && (
@@ -145,17 +148,33 @@ export default function UploadView({ onClose, tasks, onAddTasks, onRetryTask, on
                              <RefreshCw className="w-4 h-4" />
                            </button>
                         )}
-                        <button onClick={() => onRemoveTask(task.id)} className="p-1.5 text-slate-400 hover:text-slate-600 transition-colors">
-                          <XCircle className="w-5 h-5" />
-                        </button>
+                        {task.status === 'uploading' && (
+                           <button onClick={() => onPauseTask(task.id)} className="p-1.5 text-slate-400 hover:text-brand-600 transition-colors" title="Pause">
+                             <Pause className="w-5 h-5" />
+                           </button>
+                        )}
+                        {task.status === 'paused' && (
+                           <button onClick={() => onResumeTask(task.id)} className="p-1.5 text-slate-400 hover:text-brand-600 transition-colors" title="Resume">
+                             <Play className="w-5 h-5" />
+                           </button>
+                        )}
+                        {(task.status === 'uploading' || task.status === 'paused' || task.status === 'pending') ? (
+                           <button onClick={() => onCancelTask(task.id)} className="p-1.5 text-slate-400 hover:text-red-600 transition-colors" title="Cancel">
+                             <XCircle className="w-5 h-5" />
+                           </button>
+                        ) : (
+                           <button onClick={() => onRemoveTask(task.id)} className="p-1.5 text-slate-400 hover:text-slate-600 transition-colors" title="Remove">
+                             <XCircle className="w-5 h-5" />
+                           </button>
+                        )}
                       </div>
                     </div>
 
                     {/* Progress Bar */}
-                    {(task.status === 'uploading' || task.status === 'processing') && (
+                    {(task.status === 'uploading' || task.status === 'paused' || task.status === 'processing') && (
                       <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
                         <motion.div 
-                          className={`h-full ${task.status === 'processing' ? 'bg-amber-500' : 'bg-brand-500'}`}
+                          className={`h-full ${task.status === 'processing' ? 'bg-amber-500' : task.status === 'paused' ? 'bg-slate-400' : 'bg-brand-500'}`}
                           initial={{ width: 0 }}
                           animate={{ width: `${task.progress}%` }}
                           transition={{ ease: "linear", duration: 0.2 }}
