@@ -1,9 +1,10 @@
 'use client';
 import { Note } from '../types';
-import { Search, Bell, Calendar, Clock, ChevronRight, Sparkles, Pin, Mic, Upload, PenLine, BarChart3, Filter } from 'lucide-react';
+import { Search, Bell, Calendar, Clock, ChevronRight, Sparkles, Pin, Mic, Upload, PenLine, BarChart3, Filter, Trash2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useAuth } from '../lib/AuthContext';
 import { useState } from 'react';
+import { deleteNote } from '../lib/db';
 
 interface HomeViewProps {
   notes: Note[];
@@ -18,6 +19,18 @@ export default function HomeView({ notes, onOpenNote, onOpenUpload, onOpenSearch
   const { user } = useAuth();
   const firstName = user?.displayName?.split(' ')[0] || 'there';
   const [activeFilter, setActiveFilter] = useState('All');
+
+  const handleDelete = async (noteId: string) => {
+    if (!user) return;
+    if (window.confirm("Are you sure you want to delete this note? This action cannot be undone.")) {
+      try {
+        await deleteNote(user.uid, noteId);
+      } catch (error) {
+        console.error("Failed to delete note:", error);
+        alert("Failed to delete note.");
+      }
+    }
+  };
 
   const filters = ['All', 'Work', 'Personal', 'Shared', 'Pinned'];
 
@@ -150,22 +163,33 @@ export default function HomeView({ notes, onOpenNote, onOpenUpload, onOpenSearch
             </div>
             <div className="flex overflow-x-auto no-scrollbar -mx-6 px-6 gap-4 pb-4">
               {pinnedNotes.map((note, index) => (
-                <motion.button
+                <motion.div
                   key={note.id}
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: index * 0.1 }}
                   onClick={() => onOpenNote(note)}
-                  className="shrink-0 w-[280px] bg-gradient-to-br from-brand-50 to-indigo-50/50 p-5 rounded-[24px] border border-brand-100 text-left shadow-sm relative overflow-hidden group"
+                  role="button"
+                  tabIndex={0}
+                  className="shrink-0 w-[280px] bg-gradient-to-br from-brand-50 to-indigo-50/50 p-5 rounded-[24px] border border-brand-100 text-left shadow-sm relative overflow-hidden group cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-500/20"
                 >
-                  <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                    <Sparkles className="w-24 h-24 text-brand-600" />
+                  <div className="absolute top-0 right-0 p-4 flex gap-2">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleDelete(note.id); }}
+                      className="relative z-20 p-2 text-brand-600/60 hover:text-red-500 hover:bg-red-50/80 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+                      title="Delete Note"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="absolute -top-4 -right-4 p-4 opacity-5 pointer-events-none">
+                    <Sparkles className="w-32 h-32 text-brand-600" />
                   </div>
                   <div className="flex items-center gap-2 mb-3 relative z-10">
                     <Sparkles className="w-4 h-4 text-brand-600" />
                     <h3 className="text-xs font-semibold text-brand-900 uppercase tracking-wider">AI Insight</h3>
                   </div>
-                  <h4 className="font-display font-semibold text-slate-900 mb-2 truncate relative z-10">{note.title}</h4>
+                  <h4 className="font-display font-semibold text-slate-900 mb-2 truncate relative z-10 w-4/5">{note.title}</h4>
                   <div className="space-y-2 relative z-10">
                      {(note.aiHighlights || note.actionItems || note.decisions || [note.summary]).slice(0, 2).map((highlight, idx) => (
                        <p key={idx} className="text-sm font-semibold text-slate-900 leading-relaxed pl-3 relative before:content-[''] before:absolute before:left-0 before:top-2 before:w-1 before:h-1 before:bg-brand-500 before:rounded-full line-clamp-2">
@@ -173,7 +197,7 @@ export default function HomeView({ notes, onOpenNote, onOpenUpload, onOpenSearch
                        </p>
                      ))}
                   </div>
-                </motion.button>
+                </motion.div>
               ))}
             </div>
           </section>
@@ -187,7 +211,7 @@ export default function HomeView({ notes, onOpenNote, onOpenUpload, onOpenSearch
             </div>
             <div className="flex flex-col gap-3">
               {todayNotes.map((note, index) => (
-                <NoteCard key={note.id} note={note} onClick={() => onOpenNote(note)} index={index} />
+                <NoteCard key={note.id} note={note} onClick={() => onOpenNote(note)} index={index} onDelete={(e) => { e.stopPropagation(); handleDelete(note.id); }} />
               ))}
             </div>
           </section>
@@ -202,7 +226,7 @@ export default function HomeView({ notes, onOpenNote, onOpenUpload, onOpenSearch
             </div>
             <div className="flex flex-col gap-3">
               {recentNotes.map((note, index) => (
-                <NoteCard key={note.id} note={note} onClick={() => onOpenNote(note)} index={index} />
+                <NoteCard key={note.id} note={note} onClick={() => onOpenNote(note)} index={index} onDelete={(e) => { e.stopPropagation(); handleDelete(note.id); }} />
               ))}
             </div>
           </section>
@@ -212,19 +236,32 @@ export default function HomeView({ notes, onOpenNote, onOpenUpload, onOpenSearch
   );
 }
 
-function NoteCard({ note, onClick, index }: { note: Note; onClick: () => void; index: number }) {
+function NoteCard({ note, onClick, index, onDelete }: { note: Note; onClick: () => void; index: number; onDelete?: (e: React.MouseEvent) => void }) {
   return (
-    <motion.button
+    <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
       onClick={onClick}
-      className="bg-white p-4 rounded-[20px] shadow-sm shadow-slate-200/50 border border-slate-100 text-left w-full hover:shadow-md transition-shadow flex flex-col gap-3 group"
+      role="button"
+      tabIndex={0}
+      className="bg-white p-4 rounded-[20px] shadow-sm shadow-slate-200/50 border border-slate-100 text-left w-full hover:shadow-md transition-shadow flex flex-col gap-3 group cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-500/20"
     >
       <div className="flex justify-between items-start">
         <h3 className="font-display font-medium text-slate-900 leading-tight pr-4">{note.title}</h3>
-        <div className="bg-slate-50 rounded-full p-1.5 group-hover:bg-brand-50 transition-colors shrink-0">
-          <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-brand-600" />
+        <div className="flex items-center gap-1 shrink-0">
+          {onDelete && (
+            <button 
+              onClick={onDelete}
+              className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+              title="Delete Note"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
+          <div className="bg-slate-50 rounded-full p-1.5 group-hover:bg-brand-50 transition-colors">
+            <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-brand-600" />
+          </div>
         </div>
       </div>
       
@@ -255,6 +292,6 @@ function NoteCard({ note, onClick, index }: { note: Note; onClick: () => void; i
           </div>
         )}
       </div>
-    </motion.button>
+    </motion.div>
   );
 }

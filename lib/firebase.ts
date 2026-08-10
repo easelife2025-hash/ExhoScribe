@@ -1,7 +1,6 @@
 import { initializeApp, getApps } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, initializeAuth, browserLocalPersistence, inMemoryPersistence, Auth } from 'firebase/auth';
 import { getFirestore, Firestore, enableIndexedDbPersistence, enableMultiTabIndexedDbPersistence, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
-import { getStorage } from "firebase/storage";
 import { getFunctions } from "firebase/functions";
 import { getAnalytics, isSupported as isAnalyticsSupported } from "firebase/analytics";
 import { getMessaging, isSupported as isMessagingSupported } from "firebase/messaging";
@@ -45,8 +44,6 @@ try {
   db = getFirestore(app);
 }
 
-const storage = getStorage(app);
-storage.maxUploadRetryTime = 10000; // 10 seconds (fail fast if bucket not found/enabled)
 const functions = getFunctions(app);
 
 let analytics = null;
@@ -67,4 +64,4 @@ export const getMessagingInstance = async () => {
   return null;
 };
 
-export { app, auth, googleProvider, db, storage, functions, analytics };
+export { app, auth, googleProvider, db, functions, analytics };

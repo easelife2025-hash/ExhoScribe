@@ -63,7 +63,7 @@ function AppContent() {
 
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('model', 'gemini-2.5-pro');
+      formData.append('model', 'gemini-1.5-flash');
       
       const aiResult = await new Promise<any>((resolve, reject) => {
         const xhr = new XMLHttpRequest();

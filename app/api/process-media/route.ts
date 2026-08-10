@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     const file = formData.get('file') as File | null;
-    const model = formData.get('model') as string || 'gemini-2.5-pro';
+    const model = formData.get('model') as string || 'gemini-1.5-flash';
     
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
@@ -77,7 +77,7 @@ Return the result in this exact JSON structure:
     while (generateAttempts < 3) {
       try {
         response = await ai.models.generateContent({
-          model: model || 'gemini-2.5-pro',
+          model: model || 'gemini-1.5-flash',
           contents: [
             {
               fileData: {

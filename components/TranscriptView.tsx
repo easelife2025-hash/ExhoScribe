@@ -2,10 +2,10 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Note, Comment, Notification } from '../types';
-import { Play, Pause, Bookmark, Download, Sparkles, Target, Edit3, ListTodo, CheckSquare, Search, ChevronLeft, Hash, MessageCircle, Send, Users } from 'lucide-react';
+import { Play, Pause, Bookmark, Download, Sparkles, Target, Edit3, ListTodo, CheckSquare, Search, ChevronLeft, Hash, MessageCircle, Send, Users, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../lib/AuthContext';
-import { saveComment, subscribeToComments, subscribeToNote, updateNote, saveNotification } from '../lib/db';
+import { saveComment, subscribeToComments, subscribeToNote, updateNote, saveNotification, deleteNote } from '../lib/db';
 
 interface TranscriptViewProps {
   note: Note;
@@ -24,6 +24,8 @@ export default function TranscriptView({ note: initialNote, onBack }: Transcript
   
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -43,6 +45,25 @@ export default function TranscriptView({ note: initialNote, onBack }: Transcript
     const unsubscribe = subscribeToComments(note.id, setComments);
     return () => unsubscribe();
   }, [note.id]);
+
+  const confirmDelete = async () => {
+    if (!user || isDeleting) return;
+    
+    setIsDeleting(true);
+    try {
+      await deleteNote(user.uid, note.id);
+      onBack();
+    } catch (error) {
+      console.error("Failed to delete note:", error);
+      alert("Failed to delete note.");
+      setIsDeleting(false);
+      setShowDeleteConfirm(false);
+    }
+  };
+
+  const handleDelete = () => {
+    setShowDeleteConfirm(true);
+  };
 
   const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const val = e.target.value;
@@ -154,6 +175,14 @@ export default function TranscriptView({ note: initialNote, onBack }: Transcript
           <ChevronLeft className="w-5 h-5" />
         </button>
         <div className="flex items-center gap-2">
+          <button 
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="p-2 bg-white rounded-full text-red-500 hover:bg-red-50 shadow-sm border border-slate-100 transition-colors disabled:opacity-50"
+            title="Delete Note"
+          >
+            <Trash2 className="w-5 h-5" />
+          </button>
           <div className="relative">
             <button 
               onClick={() => setShowExportMenu(!showExportMenu)}
@@ -448,6 +477,45 @@ export default function TranscriptView({ note: initialNote, onBack }: Transcript
           </AnimatePresence>
         </div>
       </div>
+
+      <AnimatePresence>
+        {showDeleteConfirm && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden"
+            >
+              <div className="p-6">
+                <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mb-4">
+                  <Trash2 className="w-6 h-6 text-red-500" />
+                </div>
+                <h3 className="text-lg font-semibold text-slate-900 mb-2">Delete Note</h3>
+                <p className="text-sm text-slate-500 mb-6">
+                  Are you sure you want to delete this note? This action cannot be undone.
+                </p>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setShowDeleteConfirm(false)}
+                    disabled={isDeleting}
+                    className="flex-1 py-2.5 px-4 bg-white border border-slate-200 text-slate-700 rounded-xl font-medium text-sm hover:bg-slate-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={confirmDelete}
+                    disabled={isDeleting}
+                    className="flex-1 py-2.5 px-4 bg-red-500 text-white rounded-xl font-medium text-sm hover:bg-red-600 transition-colors disabled:opacity-50"
+                  >
+                    {isDeleting ? 'Deleting...' : 'Delete'}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
