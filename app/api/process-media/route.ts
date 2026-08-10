@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     const file = formData.get('file') as File | null;
-    const model = formData.get('model') as string || 'gemini-1.5-flash';
+    const model = formData.get('model') as string || 'gemini-3.5-flash';
     
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
@@ -21,14 +21,14 @@ export async function POST(req: NextRequest) {
 
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
     
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
     const tmpDir = os.tmpdir();
     const safeName = file.name ? file.name.replace(/[^a-zA-Z0-9.]/g, '') : 'upload.tmp';
     tmpFilePath = path.join(tmpDir, `${Date.now()}-${safeName}`);
     
-    fs.writeFileSync(tmpFilePath, buffer);
+    const fileStream = file.stream();
+    const writeStream = fs.createWriteStream(tmpFilePath);
+    // @ts-ignore - Readable.fromWeb handles web streams
+    await pipeline(Readable.fromWeb(fileStream), writeStream);
 
     // 2. Upload the file to Gemini using ai.files.upload
     const uploadResult = await ai.files.upload({
@@ -77,15 +77,22 @@ Return the result in this exact JSON structure:
     while (generateAttempts < 3) {
       try {
         response = await ai.models.generateContent({
-          model: model || 'gemini-1.5-flash',
+          model: model || 'gemini-3.5-flash',
           contents: [
             {
-              fileData: {
-                fileUri: uploadResult.uri,
-                mimeType: uploadResult.mimeType
-              }
-            },
-            prompt
+              role: 'user',
+              parts: [
+                {
+                  fileData: {
+                    fileUri: uploadResult.uri,
+                    mimeType: uploadResult.mimeType
+                  }
+                },
+                {
+                  text: prompt
+                }
+              ]
+            }
           ],
           config: {
             responseMimeType: 'application/json',
@@ -111,7 +118,20 @@ Return the result in this exact JSON structure:
       throw new Error("No response from AI");
     }
 
-    const parsedResult = JSON.parse(resultText);
+    let cleanText = resultText.trim();
+    if (cleanText.startsWith('```json')) {
+      cleanText = cleanText.replace(/^```json\n/, '').replace(/\n```$/, '');
+    } else if (cleanText.startsWith('```')) {
+      cleanText = cleanText.replace(/^```\n/, '').replace(/\n```$/, '');
+    }
+    
+    // In case there is extra text after the JSON object
+    const lastBrace = cleanText.lastIndexOf('}');
+    if (lastBrace !== -1) {
+      cleanText = cleanText.substring(0, lastBrace + 1);
+    }
+    
+    const parsedResult = JSON.parse(cleanText);
     return NextResponse.json(parsedResult);
   } catch (error: any) {
     console.error('Error processing media:', error);

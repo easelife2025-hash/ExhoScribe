@@ -32,11 +32,15 @@ export default function UploadView({ onClose, tasks, onAddTasks, onRetryTask, on
   const validateFiles = (files: File[]) => {
     const validFiles: File[] = [];
     files.forEach(file => {
-      if (file.type.startsWith('audio/') || file.type.startsWith('video/')) {
-        validFiles.push(file);
-      } else {
+      if (!(file.type.startsWith('audio/') || file.type.startsWith('video/'))) {
         alert(`"${file.name}" is not a valid audio or video file.`);
+        return;
       }
+      if (file.size > 500 * 1024 * 1024) {
+        alert(`"${file.name}" exceeds the 500MB size limit.`);
+        return;
+      }
+      validFiles.push(file);
     });
     return validFiles;
   };
