@@ -61,58 +61,64 @@ function AppContent() {
     try {
       setUploadTasks(prev => prev.map(t => t.id === taskId ? { ...t, progress: 0, status: 'uploading' } : t));
 
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('model', 'gemini-3.5-flash');
+      const { ref: storageRef, uploadBytesResumable, getDownloadURL } = await import('firebase/storage');
+      const { storage } = await import('@/lib/firebase');
       
-      const aiResult = await new Promise<any>((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        
-        xhr.upload.addEventListener('progress', (event) => {
-          if (event.lengthComputable) {
-            const progress = (event.loaded / event.total) * 100;
-            setUploadTasks(prev => prev.map(t => t.id === taskId ? { ...t, progress, status: 'uploading' } : t));
-          }
-        });
-
-        xhr.addEventListener('load', () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            try {
-              const response = JSON.parse(xhr.responseText);
-              resolve(response);
-            } catch (e) {
-              reject(new Error('Invalid response from server'));
-            }
-          } else {
-            try {
-              const response = JSON.parse(xhr.responseText);
-              reject(new Error(response.error || 'Failed to process media'));
-            } catch (e) {
-              reject(new Error('Failed to process media'));
-            }
-          }
-        });
-
-        xhr.addEventListener('error', () => {
-          reject(new Error('Network error during upload'));
-        });
-
-        xhr.addEventListener('abort', () => {
-          reject(new Error('Upload cancelled'));
-        });
-
-        xhr.open('POST', '/api/process-media');
-        
-        firebaseTasksRef.current.set(taskId, {
-          cancel: () => xhr.abort()
-        });
-        
-        xhr.send(formData);
-        
-        xhr.upload.addEventListener('load', () => {
-           setUploadTasks(prev => prev.map(t => t.id === taskId ? { ...t, progress: 100, status: 'processing' } : t));
-        });
+      const fileExt = file.name.split('.').pop() || 'tmp';
+      const uid = currentUser?.uid || 'anonymous';
+      const fileStorageRef = storageRef(storage, `uploads/${uid}/${taskId}.${fileExt}`);
+      
+      const uploadTask = uploadBytesResumable(fileStorageRef, file);
+      
+      firebaseTasksRef.current.set(taskId, {
+        pause: () => uploadTask.pause(),
+        resume: () => uploadTask.resume(),
+        cancel: () => uploadTask.cancel()
       });
+
+      const downloadURL = await new Promise<string>((resolve, reject) => {
+        uploadTask.on('state_changed', 
+          (snapshot) => {
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 50; // First 50% is storage upload
+            setUploadTasks(prev => prev.map(t => t.id === taskId ? { ...t, progress, status: snapshot.state === 'paused' ? 'paused' : 'uploading' } : t));
+          },
+          (error) => {
+            reject(error);
+          },
+          async () => {
+            try {
+              const url = await getDownloadURL(uploadTask.snapshot.ref);
+              resolve(url);
+            } catch (e) {
+              reject(e);
+            }
+          }
+        );
+      });
+
+      setUploadTasks(prev => prev.map(t => t.id === taskId ? { ...t, progress: 50, status: 'processing' } : t));
+
+      const response = await fetch('/api/process-media', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fileUrl: downloadURL,
+          fileName: file.name,
+          mimeType: file.type,
+          model: 'gemini-3.5-flash'
+        })
+      });
+
+      if (!response.ok) {
+        let errorText = await response.text();
+        try {
+          const errJson = JSON.parse(errorText);
+          errorText = errJson.error || errorText;
+        } catch(e){}
+        throw new Error(`Server Error ${response.status}: ${errorText.substring(0, 100)}`);
+      }
+
+      const aiResult = await response.json();
 
       setUploadTasks(prev => prev.map(t => t.id === taskId ? { ...t, progress: 100 } : t));
 

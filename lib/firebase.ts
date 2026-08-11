@@ -64,4 +64,8 @@ export const getMessagingInstance = async () => {
   return null;
 };
 
-export { app, auth, googleProvider, db, functions, analytics };
+import { getStorage } from 'firebase/storage';
+
+const storage = getStorage(app);
+
+export { app, auth, googleProvider, db, functions, analytics, storage };

@@ -1,0 +1,6 @@
+{
+  "fileUrl": "https://raw.githubusercontent.com/mathiasbynens/small/master/mp3.mp3",
+  "fileName": "small.mp3",
+  "mimeType": "audio/mp3",
+  "model": "gemini-3.5-flash"
+}
