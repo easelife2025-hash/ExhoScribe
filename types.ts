@@ -18,6 +18,7 @@ export type Note = {
   sentiment?: string;
   workspaceId?: string;
   folderId?: string;
+  fileUrl?: string;
 };
 
 export type ViewState = 'home' | 'recording' | 'transcript' | 'profile' | 'upload' | 'calendar' | 'search' | 'workspaces' | 'notifications';

@@ -166,6 +166,8 @@ Return the result in this exact JSON structure:
     }
     
     const parsedResult = JSON.parse(cleanText);
+    parsedResult.fileUrl = uploadResult.uri;
+    
     return NextResponse.json(parsedResult);
   } catch (error: any) {
     console.error('Error processing media:', error);

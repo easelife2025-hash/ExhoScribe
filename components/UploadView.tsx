@@ -145,21 +145,14 @@ export default function UploadView({ onClose, tasks, onAddTasks, onRetryTask, on
                            <div className="text-xs font-medium text-amber-600">Processing</div>
                         )}
                         {task.status === 'completed' && (
-                           <CheckCircle2 className="w-5 h-5 text-green-500" />
+                           <div className="flex items-center gap-1">
+                             <span className="text-xs font-medium text-green-600">Uploaded</span>
+                             <CheckCircle2 className="w-5 h-5 text-green-500" />
+                           </div>
                         )}
                         {task.status === 'failed' && (
                            <button onClick={() => onRetryTask(task.id)} className="p-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors" title="Retry">
                              <RefreshCw className="w-4 h-4" />
-                           </button>
-                        )}
-                        {task.status === 'uploading' && (
-                           <button onClick={() => onPauseTask(task.id)} className="p-1.5 text-slate-400 hover:text-brand-600 transition-colors" title="Pause">
-                             <Pause className="w-5 h-5" />
-                           </button>
-                        )}
-                        {task.status === 'paused' && (
-                           <button onClick={() => onResumeTask(task.id)} className="p-1.5 text-slate-400 hover:text-brand-600 transition-colors" title="Resume">
-                             <Play className="w-5 h-5" />
                            </button>
                         )}
                         {(task.status === 'uploading' || task.status === 'paused' || task.status === 'pending') ? (

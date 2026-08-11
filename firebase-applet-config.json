@@ -1,11 +1,11 @@
 {
-  "projectId": "red-aura-ncf5x",
-  "appId": "1:213623640947:web:c9dc64e739ceb4831b6b06",
-  "apiKey": "AIzaSyAVyx4OX3AZMNnPnqrPl07fnqSwLbN3q_M",
-  "authDomain": "red-aura-ncf5x.firebaseapp.com",
-  "storageBucket": "red-aura-ncf5x.firebasestorage.app",
-  "messagingSenderId": "213623640947",
+  "projectId": "meeting-mind-7f919",
+  "appId": "1:961617263578:web:e0f3c96d633ae9a4df1ee3",
+  "apiKey": "AIzaSyCv6VFxmUn2EdTKU6WFSERxcTUxiNokUU8",
+  "authDomain": "meeting-mind-7f919.firebaseapp.com",
+  "storageBucket": "meeting-mind-7f919.firebasestorage.app",
+  "messagingSenderId": "961617263578",
   "measurementId": "",
-  "oAuthClientId": "213623640947-ets2gq63gb5fe0bj04hnqfui4q7lp0rl.apps.googleusercontent.com",
+  "oAuthClientId": "",
   "recaptchaSiteKey": ""
 }
