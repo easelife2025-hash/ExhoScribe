@@ -12,7 +12,7 @@ interface TranscriptViewProps {
   onBack: () => void;
 }
 
-export default function TranscriptView({ note: initialNote, onBack }: TranscriptViewProps) {
+export function TranscriptView({ note: initialNote, onBack }: TranscriptViewProps) {
   const { user } = useAuth();
   const [note, setNote] = useState<Note>(initialNote);
   const [activeTab, setActiveTab] = useState<'summary' | 'transcript' | 'details' | 'notes' | 'comments'>('summary');
@@ -294,9 +294,8 @@ export default function TranscriptView({ note: initialNote, onBack }: Transcript
                                 if (!user) return;
                                 const title = 'Task Deadline Reminder';
                                 const message = `Reminder for task: "${item}"`;
-                                const { saveNotification } = await import('@/lib/db');
                                 await saveNotification({
-                                  id: Date.now().toString(),
+                                  id: Date.now().toString() + Math.random().toString(36).substring(2),
                                   userId: user.uid,
                                   title,
                                   message,

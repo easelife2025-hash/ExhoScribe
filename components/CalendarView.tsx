@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'motion/react';
 import { Calendar as CalendarIcon, Video, MapPin, Clock, Plus, ExternalLink, CalendarPlus, CheckCircle, PlusCircle } from 'lucide-react';
-import { CalendarEvent, fetchGoogleCalendarEvents, fetchMicrosoftCalendarEvents } from '../lib/calendar';
+import { CalendarEvent, fetchGoogleCalendarEvents, fetchMicrosoftCalendarEvents, fetchGoogleDriveRecording } from '../lib/calendar';
 import { auth, googleProvider } from '../lib/firebase';
 import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { format, isSameDay } from 'date-fns';
@@ -21,7 +21,6 @@ export default function CalendarView() {
     setImportingId(event.id);
     
     try {
-      const { fetchGoogleDriveRecording } = await import('../lib/calendar');
       const link = await fetchGoogleDriveRecording(googleToken, event.title);
       
       // Simulate processing time

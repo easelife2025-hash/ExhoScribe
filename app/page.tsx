@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import BottomNav from '@/components/BottomNav';
 import HomeView from '@/components/HomeView';
 import RecordingView from '@/components/RecordingView';
-import TranscriptView from '@/components/TranscriptView';
+import { TranscriptView } from '@/components/TranscriptView';
 import ProfileView from '@/components/ProfileView';
 import AuthView from '@/components/AuthView';
 import UploadView from '@/components/UploadView';
@@ -16,7 +16,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { storage } from '@/lib/firebase';
-import { saveNote, saveNotification } from '@/lib/db';
+import { saveNote, saveNotification, subscribeToNotes } from '@/lib/db';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -34,11 +34,9 @@ function AppContent() {
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
     if (user) {
-      import('@/lib/db').then(({ subscribeToNotes }) => {
-        unsubscribe = subscribeToNotes(user.uid, (fetchedNotes) => {
-          setNotes(fetchedNotes);
-        }, (err) => console.error("Error fetching notes:", err));
-      });
+      unsubscribe = subscribeToNotes(user.uid, (fetchedNotes) => {
+        setNotes(fetchedNotes);
+      }, (err) => console.error("Error fetching notes:", err));
     }
     return () => {
       if (unsubscribe) unsubscribe();
@@ -153,7 +151,7 @@ function AppContent() {
         const title = 'Processing Complete';
         const message = `Finished processing "${newNote.title}"`;
         const notif = {
-          id: Date.now().toString(),
+          id: Date.now().toString() + Math.random().toString(36).substring(2),
           userId: currentUser.uid,
           title,
           message,
