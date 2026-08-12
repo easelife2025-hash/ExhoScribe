@@ -2,10 +2,11 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Note, Comment, Notification } from '../types';
-import { Play, Pause, Bookmark, Download, Sparkles, Target, Edit3, ListTodo, CheckSquare, Search, ChevronLeft, Hash, MessageCircle, Send, Users, Trash2 } from 'lucide-react';
+import { Play, Pause, Bookmark, Download, Sparkles, Target, Edit3, ListTodo, CheckSquare, Search, ChevronLeft, Hash, MessageCircle, Send, Users, Trash2, Bot } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../lib/AuthContext';
 import { saveComment, subscribeToComments, subscribeToNote, updateNote, saveNotification, deleteNote } from '../lib/db';
+import { AiChat } from './AiChat';
 
 interface TranscriptViewProps {
   note: Note;
@@ -15,7 +16,7 @@ interface TranscriptViewProps {
 export function TranscriptView({ note: initialNote, onBack }: TranscriptViewProps) {
   const { user } = useAuth();
   const [note, setNote] = useState<Note>(initialNote);
-  const [activeTab, setActiveTab] = useState<'summary' | 'transcript' | 'details' | 'notes' | 'comments'>('summary');
+  const [activeTab, setActiveTab] = useState<'summary' | 'transcript' | 'details' | 'notes' | 'comments' | 'chat'>('summary');
   const [searchQuery, setSearchQuery] = useState('');
   const [bookmarks, setBookmarks] = useState<Set<number>>(new Set());
   const [userNotes, setUserNotes] = useState(initialNote.sharedNotes || initialNote.summary || 'Add your shared notes here...');
@@ -256,6 +257,7 @@ export function TranscriptView({ note: initialNote, onBack }: TranscriptViewProp
           <TabButton active={activeTab === 'details'} onClick={() => setActiveTab('details')} icon={Target} label="Details" />
           <TabButton active={activeTab === 'comments'} onClick={() => setActiveTab('comments')} icon={MessageCircle} label="Comments" />
           <TabButton active={activeTab === 'notes'} onClick={() => setActiveTab('notes')} icon={Edit3} label="Shared Notes" />
+          <TabButton active={activeTab === 'chat'} onClick={() => setActiveTab('chat')} icon={Bot} label="AI Chat" />
         </div>
 
         <div className="flex-1 overflow-y-auto no-scrollbar pb-10">
@@ -470,6 +472,12 @@ export function TranscriptView({ note: initialNote, onBack }: TranscriptViewProp
                     className="w-full flex-1 min-h-[300px] bg-slate-50 border border-slate-100 rounded-xl p-4 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all resize-none"
                     placeholder="Type your notes here..."
                   />
+                </div>
+              )}
+
+              {activeTab === 'chat' && (
+                <div className="h-[70vh] min-h-[500px] -mx-6 -mb-10 border-t border-slate-100 flex flex-col relative">
+                  <AiChat note={note} />
                 </div>
               )}
             </motion.div>
