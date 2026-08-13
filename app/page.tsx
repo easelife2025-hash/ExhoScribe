@@ -62,67 +62,69 @@ function AppContent() {
     try {
       setUploadTasks(prev => prev.map(t => t.id === taskId ? { ...t, progress: 0, status: 'uploading' } : t));
 
-      const formData = new FormData();
-      formData.append('file', file);
+      let fileUrl = '';
+      
       if (currentUser?.uid) {
-        formData.append('uid', currentUser.uid);
-      }
-      formData.append('taskId', taskId);
-
-      const aiResult = await new Promise<any>((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
+        // Upload to Firebase Storage
+        const fileRef = storageRef(storage, `uploads/${currentUser.uid}/${Date.now()}-${file.name}`);
+        const uploadTask = uploadBytesResumable(fileRef, file);
         
         firebaseTasksRef.current.set(taskId, {
-          pause: () => {}, // Not supported for simple XHR
-          resume: () => {},
+          pause: () => uploadTask.pause(),
+          resume: () => uploadTask.resume(),
           cancel: () => {
-            xhr.abort();
-            reject(new Error("Upload cancelled"));
+            uploadTask.cancel();
+            throw new Error("Upload cancelled");
           }
         });
-
-        xhr.upload.addEventListener('progress', (event) => {
-          if (event.lengthComputable) {
-            const progress = (event.loaded / event.total) * 50; // First 50% is upload to our server
-            setUploadTasks(prev => prev.map(t => t.id === taskId ? { ...t, progress, status: 'uploading' } : t));
-          }
-        });
-
-        xhr.upload.addEventListener('load', () => {
-          setUploadTasks(prev => prev.map(t => t.id === taskId ? { ...t, progress: 50, status: 'processing' } : t));
-        });
-
-        xhr.addEventListener('load', () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            try {
-              resolve(JSON.parse(xhr.responseText));
-            } catch (e) {
-              reject(new Error("Invalid response from server"));
+        
+        await new Promise<void>((resolve, reject) => {
+          uploadTask.on('state_changed', 
+            (snapshot) => {
+              const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 50; // First 50% is upload
+              setUploadTasks(prev => prev.map(t => t.id === taskId ? { ...t, progress, status: snapshot.state === 'paused' ? 'paused' : 'uploading' } : t));
+            }, 
+            (error) => {
+              reject(error);
+            }, 
+            () => {
+              resolve();
             }
-          } else {
-            let errorMsg = `Server Error ${xhr.status}`;
-            try {
-              const res = JSON.parse(xhr.responseText);
-              if (res.error) errorMsg = res.error;
-            } catch(e) {
-              errorMsg += `: ${xhr.responseText.substring(0, 100)}`;
-            }
-            reject(new Error(errorMsg));
-          }
+          );
         });
+        
+        setUploadTasks(prev => prev.map(t => t.id === taskId ? { ...t, progress: 50, status: 'processing' } : t));
+        fileUrl = await getDownloadURL(fileRef);
+      } else {
+        throw new Error("Must be logged in to upload files.");
+      }
 
-        xhr.addEventListener('error', () => {
-          reject(new Error("Network error occurred during upload."));
-        });
-
-        xhr.addEventListener('abort', () => {
-          reject(new Error("Upload cancelled"));
-        });
-
-        xhr.open('POST', '/api/process-media');
-        xhr.send(formData);
+      // 2. Call API to process the file URL
+      const response = await fetch('/api/process-media', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          fileUrl,
+          fileName: file.name,
+          mimeType: file.type
+        })
       });
-
+      
+      if (!response.ok) {
+        let errorMsg = `Server Error ${response.status}`;
+        try {
+          const res = await response.json();
+          if (res.error) errorMsg = res.error;
+        } catch(e) {
+           errorMsg += " failed to parse error response";
+        }
+        throw new Error(errorMsg);
+      }
+      
+      const aiResult = await response.json();
+      
       setUploadTasks(prev => prev.map(t => t.id === taskId ? { ...t, progress: 100 } : t));
 
       const newNote: Note = {
@@ -138,7 +140,7 @@ function AppContent() {
         decisions: aiResult.decisions || [],
         tasks: aiResult.tasks || [],
         sentiment: aiResult.sentiment || 'Neutral',
-        fileUrl: aiResult.fileUrl,
+        fileUrl: aiResult.fileUrl || fileUrl,
       };
 
       if (currentUser?.uid) {
@@ -146,43 +148,20 @@ function AppContent() {
         setNotes(prev => [newNote, ...prev]);
 
         setUploadTasks(prev => prev.map(t => t.id === taskId ? { ...t, progress: 100, status: 'completed' } : t));
-
-        // Trigger notification for processing completion
-        const title = 'Processing Complete';
-        const message = `Finished processing "${newNote.title}"`;
-        const notif = {
-          id: Date.now().toString() + Math.random().toString(36).substring(2),
-          userId: currentUser.uid,
-          title,
-          message,
-          read: false,
-          createdAt: new Date().toISOString()
-        };
-        await saveNotification(notif);
         
-        try {
-          await fetch('/api/notifications/send', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              userId: currentUser.uid,
-              title,
-              body: message
-            })
-          });
-        } catch(e) {}
-      } else {
-        setNotes(prev => [newNote, ...prev]);
-        setUploadTasks(prev => prev.map(t => t.id === taskId ? { ...t, progress: 100, status: 'completed' } : t));
+        await saveNotification({
+          id: crypto.randomUUID(),
+          userId: currentUser.uid,
+          title: 'Upload Complete',
+          message: `${file.name} has been processed successfully.`,
+          read: false,
+          createdAt: new Date().toISOString(),
+          link: newNote.id
+        });
       }
-
     } catch (error: any) {
-      console.error('Upload error:', error);
-      if (error?.message === 'Upload cancelled') {
-         setUploadTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: 'failed', error: 'Upload cancelled' } : t));
-      } else {
-         setUploadTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: 'failed', error: error.message || 'Upload failed' } : t));
-      }
+      console.error("Upload error:", error);
+      setUploadTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: 'failed', error: error.message } : t));
     }
   }, []);
 

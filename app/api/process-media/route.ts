@@ -11,57 +11,34 @@ export const maxDuration = 300;
 export async function POST(req: NextRequest) {
   let tmpFilePath = '';
   try {
-    const contentType = req.headers.get('content-type') || '';
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
     
     let model = 'gemini-3.5-flash';
     let fileUrl = '';
     let fileName = 'upload.tmp';
     let mimeType = 'audio/mp3';
+
+    const body = await req.json();
+    fileUrl = body.fileUrl;
+    fileName = body.fileName || fileName;
+    mimeType = body.mimeType || mimeType;
+    model = body.model || model;
     
-    if (contentType.includes('application/json')) {
-      const body = await req.json();
-      fileUrl = body.fileUrl;
-      fileName = body.fileName || fileName;
-      mimeType = body.mimeType || mimeType;
-      model = body.model || model;
-      
-      if (!fileUrl) {
-        return NextResponse.json({ error: 'No fileUrl provided' }, { status: 400 });
-      }
-      
-      const tmpDir = os.tmpdir();
-      const safeName = fileName.replace(/[^a-zA-Z0-9.]/g, '');
-      tmpFilePath = path.join(tmpDir, `${Date.now()}-${safeName}`);
-      
-      const response = await fetch(fileUrl);
-      if (!response.ok) throw new Error(`Failed to download file from storage: ${response.statusText}`);
-      if (!response.body) throw new Error(`Empty response body from storage`);
-      
-      const writeStream = fs.createWriteStream(tmpFilePath);
-      // @ts-ignore
-      await pipeline(Readable.fromWeb(response.body), writeStream);
-    } else {
-      const formData = await req.formData();
-      const file = formData.get('file') as File | null;
-      model = (formData.get('model') as string) || model;
-      
-      if (!file) {
-        return NextResponse.json({ error: 'No file provided' }, { status: 400 });
-      }
-      
-      fileName = file.name;
-      mimeType = file.type;
-      
-      const tmpDir = os.tmpdir();
-      const safeName = fileName ? fileName.replace(/[^a-zA-Z0-9.]/g, '') : 'upload.tmp';
-      tmpFilePath = path.join(tmpDir, `${Date.now()}-${safeName}`);
-      
-      const fileStream = file.stream();
-      const writeStream = fs.createWriteStream(tmpFilePath);
-      // @ts-ignore - Readable.fromWeb handles web streams
-      await pipeline(Readable.fromWeb(fileStream), writeStream);
+    if (!fileUrl) {
+      return NextResponse.json({ error: 'No fileUrl provided' }, { status: 400 });
     }
+    
+    const tmpDir = os.tmpdir();
+    const safeName = fileName.replace(/[^a-zA-Z0-9.]/g, '');
+    tmpFilePath = path.join(tmpDir, `${Date.now()}-${safeName}`);
+    
+    const response = await fetch(fileUrl);
+    if (!response.ok) throw new Error(`Failed to download file from storage: ${response.statusText}`);
+    if (!response.body) throw new Error(`Empty response body from storage`);
+    
+    const writeStream = fs.createWriteStream(tmpFilePath);
+    // @ts-ignore
+    await pipeline(Readable.fromWeb(response.body), writeStream);
 
     // 2. Upload the file to Gemini using ai.files.upload
     const uploadResult = await ai.files.upload({
@@ -81,7 +58,6 @@ export async function POST(req: NextRequest) {
        fileState = await ai.files.get({ name: uploadResult.name as string });
        attempts++;
     }
-
     if (fileState.state === 'FAILED' || fileState.state === 'PROCESSING') {
        throw new Error(`File processing failed on Gemini. State: ${fileState.state}`);
     }
@@ -106,11 +82,11 @@ Return the result in this exact JSON structure:
 }`;
 
     // 4. Generate content using the uploaded file URI
-    let response;
+    let genResponse;
     let generateAttempts = 0;
     while (generateAttempts < 3) {
       try {
-        response = await ai.models.generateContent({
+        genResponse = await ai.models.generateContent({
           model: model || 'gemini-3.5-flash',
           contents: [
             {
@@ -143,11 +119,11 @@ Return the result in this exact JSON structure:
       }
     }
 
-    if (!response) {
+    if (!genResponse) {
       throw new Error("Failed to generate content: response is undefined after all attempts.");
     }
 
-    const resultText = response.text;
+    const resultText = genResponse.text;
     if (!resultText) {
       throw new Error("No response from AI");
     }
@@ -166,7 +142,7 @@ Return the result in this exact JSON structure:
     }
     
     const parsedResult = JSON.parse(cleanText);
-    parsedResult.fileUrl = uploadResult.uri;
+    parsedResult.fileUrl = fileUrl; // Return the Firebase storage URL
     
     return NextResponse.json(parsedResult);
   } catch (error: any) {
