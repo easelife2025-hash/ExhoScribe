@@ -171,23 +171,23 @@ export function TranscriptView({ note: initialNote, onBack }: TranscriptViewProp
   return (
     <div className="flex-1 bg-white flex flex-col h-full absolute inset-0 z-40 overflow-hidden">
       {/* Header */}
-      <div className="pt-[max(env(safe-area-inset-top),3rem)] px-6 pb-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between sticky top-0 z-10 shadow-sm shadow-slate-100/50">
-        <button onClick={onBack} className="p-2 -ml-2 bg-white rounded-full text-slate-400 hover:text-brand-600 shadow-sm border border-slate-100 transition-colors">
-          <ChevronLeft className="w-5 h-5" />
+      <div className="pt-[max(env(safe-area-inset-top),3rem)] px-6 pb-4 bg-white/80 backdrop-blur-xl flex items-center justify-between sticky top-0 z-20">
+        <button onClick={onBack} className="p-2 -ml-2 bg-white rounded-full text-slate-400 hover:text-brand-600 shadow-[0_2px_8px_rgb(0,0,0,0.04)] active:scale-95 transition-all">
+          <ChevronLeft className="w-5 h-5" strokeWidth={2} />
         </button>
         <div className="flex items-center gap-2">
           <button 
             onClick={handleDelete}
             disabled={isDeleting}
-            className="p-2 bg-white rounded-full text-red-500 hover:bg-red-50 shadow-sm border border-slate-100 transition-colors disabled:opacity-50"
+            className="p-2 bg-white rounded-full text-red-500 hover:bg-red-50 shadow-[0_2px_8px_rgb(0,0,0,0.04)] active:scale-95 transition-all disabled:opacity-50"
             title="Delete Note"
           >
-            <Trash2 className="w-5 h-5" />
+            <Trash2 className="w-5 h-5" strokeWidth={2} />
           </button>
           <div className="relative">
             <button 
               onClick={() => setShowExportMenu(!showExportMenu)}
-              className="px-4 py-2 bg-white rounded-full text-sm font-medium text-slate-700 shadow-sm border border-slate-100 hover:bg-slate-50 transition-colors"
+              className="px-4 py-2 bg-white rounded-full text-sm font-semibold text-slate-700 shadow-[0_2px_8px_rgb(0,0,0,0.04)] active:scale-95 transition-all"
             >
               Export
             </button>
@@ -197,16 +197,16 @@ export function TranscriptView({ note: initialNote, onBack }: TranscriptViewProp
                   initial={{ opacity: 0, y: 10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  className="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden z-50 flex flex-col p-1"
+                  className="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-[0_20px_60px_rgb(0,0,0,0.1)] border border-slate-100 overflow-hidden z-50 flex flex-col p-1"
                 >
-                  <button className="flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-xl transition-colors text-left">
-                    <Download className="w-4 h-4 text-slate-400" /> Export PDF
+                  <button className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-xl transition-colors text-left active:scale-95">
+                    <Download className="w-4 h-4 text-slate-400" strokeWidth={2} /> Export PDF
                   </button>
-                  <button className="flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-xl transition-colors text-left">
-                    <Download className="w-4 h-4 text-slate-400" /> Export Markdown
+                  <button className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-xl transition-colors text-left active:scale-95">
+                    <Download className="w-4 h-4 text-slate-400" strokeWidth={2} /> Export Markdown
                   </button>
-                  <button className="flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-xl transition-colors text-left">
-                    <Download className="w-4 h-4 text-slate-400" /> Export JSON
+                  <button className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-xl transition-colors text-left active:scale-95">
+                    <Download className="w-4 h-4 text-slate-400" strokeWidth={2} /> Export JSON
                   </button>
                 </motion.div>
               )}
@@ -216,29 +216,29 @@ export function TranscriptView({ note: initialNote, onBack }: TranscriptViewProp
       </div>
 
       <div className="px-6 py-6 flex-1 flex flex-col">
-        <h1 className="font-display text-2xl font-semibold text-slate-900 mb-2">{note.title}</h1>
-        <div className="text-sm text-slate-500 mb-6 flex flex-wrap items-center gap-2">
+        <h1 className="text-3xl font-semibold tracking-tight text-slate-900 mb-3">{note.title}</h1>
+        <div className="text-sm font-medium text-slate-500 mb-8 flex flex-wrap items-center gap-2">
           <span>{note.date}</span>
           <span>•</span>
           <span>{note.duration}</span>
           {note.sentiment && (
              <>
                <span>•</span>
-               <span className="bg-brand-50 text-brand-600 px-2 py-0.5 rounded-md text-xs font-medium">{note.sentiment}</span>
+               <span className="bg-brand-50 text-brand-600 px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider">{note.sentiment}</span>
              </>
           )}
         </div>
 
         {/* Audio Player Mock */}
-        <div className="bg-slate-50 p-4 rounded-2xl mb-8 flex items-center gap-4 border border-slate-100">
+        <div className="bg-slate-50 p-4 rounded-[20px] mb-8 flex items-center gap-4 shadow-inner border border-slate-100">
           <button 
             onClick={() => setIsPlaying(!isPlaying)}
-            className="w-10 h-10 rounded-full bg-brand-600 text-white flex items-center justify-center shrink-0 hover:bg-brand-500 transition-colors shadow-sm shadow-brand-500/20"
+            className="w-12 h-12 rounded-full bg-brand-600 text-white flex items-center justify-center shrink-0 shadow-[0_8px_30px_rgba(79,70,229,0.3)] active:scale-95 transition-all"
           >
-            {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current ml-0.5" />}
+            {isPlaying ? <Pause className="w-5 h-5 fill-current" strokeWidth={2} /> : <Play className="w-5 h-5 fill-current ml-0.5" strokeWidth={2} />}
           </button>
           <div className="flex-1">
-            <div className="h-1.5 bg-slate-200 rounded-full w-full overflow-hidden relative">
+            <div className="h-2 bg-slate-200 rounded-full w-full overflow-hidden relative">
                <motion.div 
                   initial={{ width: '0%' }}
                   animate={{ width: isPlaying ? '100%' : '33%' }}
@@ -247,11 +247,11 @@ export function TranscriptView({ note: initialNote, onBack }: TranscriptViewProp
                />
             </div>
           </div>
-          <div className="text-xs font-medium text-slate-500 tabular-nums shrink-0">12:34</div>
+          <div className="text-xs font-semibold text-slate-500 tabular-nums shrink-0">12:34</div>
         </div>
 
         {/* Tabs */}
-        <div className="flex overflow-x-auto no-scrollbar gap-2 mb-6 -mx-6 px-6 pb-2">
+        <div className="flex overflow-x-auto no-scrollbar gap-2 mb-8 -mx-6 px-6 pb-2">
           <TabButton active={activeTab === 'summary'} onClick={() => setActiveTab('summary')} icon={Sparkles} label="Summary" />
           <TabButton active={activeTab === 'transcript'} onClick={() => setActiveTab('transcript')} icon={Edit3} label="Transcript" />
           <TabButton active={activeTab === 'details'} onClick={() => setActiveTab('details')} icon={Target} label="Details" />
@@ -260,7 +260,7 @@ export function TranscriptView({ note: initialNote, onBack }: TranscriptViewProp
           <TabButton active={activeTab === 'chat'} onClick={() => setActiveTab('chat')} icon={Bot} label="AI Chat" />
         </div>
 
-        <div className="flex-1 overflow-y-auto no-scrollbar pb-10">
+        <div className="flex-1 overflow-y-auto no-scrollbar pb-safe-bottom">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
@@ -268,29 +268,30 @@ export function TranscriptView({ note: initialNote, onBack }: TranscriptViewProp
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
+              className="pb-10"
             >
               {activeTab === 'summary' && (
                 <div className="flex flex-col gap-6">
-                  <div className="bg-gradient-to-br from-teal-50 to-indigo-50 p-5 rounded-[24px] border border-teal-100/50 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-4 opacity-10">
-                      <Sparkles className="w-24 h-24 text-teal-600" />
+                  <div className="bg-slate-800 text-white p-6 rounded-[20px] shadow-[0_12px_40px_rgb(0,0,0,0.12)] relative overflow-hidden">
+                    <div className="absolute -top-4 -right-4 p-4 opacity-[0.03]">
+                      <Sparkles className="w-32 h-32 text-brand-300" />
                     </div>
-                    <div className="flex items-center gap-2 mb-3 relative z-10">
-                      <Sparkles className="w-4 h-4 text-teal-600" />
-                      <h3 className="text-sm font-semibold text-teal-900 uppercase tracking-wider">AI Summary</h3>
+                    <div className="flex items-center gap-2 mb-4 relative z-10">
+                      <Sparkles className="w-5 h-5 text-brand-300" strokeWidth={2} />
+                      <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider">AI Summary</h3>
                     </div>
-                    <p className="text-base font-semibold text-slate-900 leading-relaxed relative z-10">{note.summary}</p>
+                    <p className="text-lg font-medium leading-relaxed relative z-10">{note.summary}</p>
                   </div>
                   {note.actionItems && note.actionItems.length > 0 && (
                     <div>
-                      <h3 className="text-sm font-semibold text-slate-800 uppercase tracking-wider flex items-center gap-2 mb-3">
-                        <ListTodo className="w-4 h-4 text-brand-500" /> Action Items
+                      <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-2 mb-4">
+                        <ListTodo className="w-4 h-4" strokeWidth={2} /> Action Items
                       </h3>
-                      <ul className="space-y-2">
+                      <ul className="space-y-3">
                         {note.actionItems.map((item, i) => (
-                          <li key={i} className="flex gap-3 items-start text-sm bg-slate-50 p-3 rounded-xl border border-slate-100">
-                            <CheckSquare className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
-                            <span className="flex-1 font-semibold text-slate-900">{item}</span>
+                          <li key={i} className="flex gap-3 items-start text-sm bg-white p-4 rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+                            <CheckSquare className="w-5 h-5 text-brand-500 shrink-0 mt-0.5" strokeWidth={2} />
+                            <span className="flex-1 font-semibold text-slate-900 text-base">{item}</span>
                             <button 
                               onClick={async () => {
                                 if (!user) return;
@@ -324,16 +325,16 @@ export function TranscriptView({ note: initialNote, onBack }: TranscriptViewProp
                   )}
                   {note.chapters && note.chapters.length > 0 && (
                     <div>
-                      <h3 className="text-sm font-semibold text-slate-800 uppercase tracking-wider flex items-center gap-2 mb-3">
-                        <ListTodo className="w-4 h-4 text-brand-500" /> Chapters
+                      <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-2 mb-4">
+                        <ListTodo className="w-4 h-4" strokeWidth={2} /> Chapters
                       </h3>
                       <div className="flex flex-col gap-3">
                         {note.chapters.map((chapter, i) => (
-                          <div key={i} className="flex gap-3 p-3 bg-white border border-slate-100 rounded-xl shadow-sm">
-                            <span className="text-sm font-medium text-brand-600 shrink-0 w-12">{chapter.time}</span>
+                          <div key={i} className="flex gap-4 p-4 bg-white shadow-[0_2px_8px_rgb(0,0,0,0.04)] rounded-[20px] items-start">
+                            <span className="text-sm font-bold text-brand-600 shrink-0 w-12 pt-0.5">{chapter.time}</span>
                             <div>
-                               <h4 className="text-sm font-semibold text-slate-900 mb-1">{chapter.title}</h4>
-                               <p className="text-sm font-semibold text-slate-900 leading-relaxed">{chapter.summary}</p>
+                               <h4 className="text-base font-semibold text-slate-900 mb-1">{chapter.title}</h4>
+                               <p className="text-sm font-medium text-slate-600 leading-relaxed">{chapter.summary}</p>
                             </div>
                           </div>
                         ))}
@@ -345,73 +346,75 @@ export function TranscriptView({ note: initialNote, onBack }: TranscriptViewProp
               {activeTab === 'transcript' && (
                 <div className="flex flex-col gap-6">
                   <div className="relative">
-                    <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <Search className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" strokeWidth={2} />
                     <input 
                       type="text" 
                       placeholder="Search in transcript..." 
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-100 rounded-xl pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all"
+                      className="w-full bg-slate-50 shadow-inner rounded-[16px] pl-11 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 transition-shadow font-medium text-slate-900"
                     />
                   </div>
-                  {filteredTranscript.map((item, index) => (
-                    <div key={index} className="flex gap-4 group">
-                      <div className="w-12 text-xs font-medium text-brand-600 pt-0.5 shrink-0 tabular-nums">
-                        {item.time}
-                      </div>
-                      <div className="flex-1 relative">
-                        <div className="flex items-center justify-between mb-1">
-                          <div className="text-sm font-semibold text-slate-900">{item.speaker}</div>
-                          <button 
-                            onClick={() => toggleBookmark(index)}
-                            className={`p-1.5 rounded-md transition-colors ${bookmarks.has(index) ? 'text-amber-500 bg-amber-50' : 'text-slate-300 opacity-0 group-hover:opacity-100 hover:bg-slate-100'}`}
-                          >
-                            <Bookmark className="w-3.5 h-3.5" fill={bookmarks.has(index) ? "currentColor" : "none"} />
-                          </button>
+                  <div className="space-y-6">
+                    {filteredTranscript.map((item, index) => (
+                      <div key={index} className="flex gap-4 group">
+                        <div className="w-12 text-xs font-bold text-brand-600 pt-0.5 shrink-0 tabular-nums">
+                          {item.time}
                         </div>
-                        <div className={`text-[15px] leading-relaxed transition-colors ${bookmarks.has(index) ? 'text-slate-900 font-medium' : 'text-slate-600 group-hover:text-slate-900'}`}>
-                          {item.text}
+                        <div className="flex-1 relative">
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="text-sm font-semibold text-slate-900">{item.speaker}</div>
+                            <button 
+                              onClick={() => toggleBookmark(index)}
+                              className={`p-1.5 rounded-lg transition-all active:scale-95 ${bookmarks.has(index) ? 'text-amber-500 bg-amber-50 shadow-sm' : 'text-slate-300 opacity-0 group-hover:opacity-100 hover:bg-slate-100'}`}
+                            >
+                              <Bookmark className="w-4 h-4" fill={bookmarks.has(index) ? "currentColor" : "none"} strokeWidth={2} />
+                            </button>
+                          </div>
+                          <div className={`text-base leading-relaxed transition-colors ${bookmarks.has(index) ? 'text-slate-900 font-semibold bg-amber-50/50 p-2 -mx-2 rounded-lg' : 'text-slate-600 group-hover:text-slate-800'}`}>
+                            {item.text}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                   {filteredTranscript.length === 0 && (
-                    <div className="text-center py-10 text-slate-500 text-sm">
+                    <div className="text-center py-10 text-slate-500 text-sm font-medium bg-slate-50 rounded-[20px]">
                       No matching transcript found.
                     </div>
                   )}
                 </div>
               )}
-              {activeTab === 'details' && (
-                <div className="flex flex-col gap-6">
+               {activeTab === 'details' && (
+                <div className="flex flex-col gap-8">
                    {note.decisions && note.decisions.length > 0 && (
                     <div>
-                      <h3 className="text-sm font-semibold text-slate-800 uppercase tracking-wider flex items-center gap-2 mb-3">
-                        <Target className="w-4 h-4 text-amber-500" /> Decisions Made
+                      <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-2 mb-4">
+                        <Target className="w-4 h-4 text-amber-500" strokeWidth={2} /> Decisions Made
                       </h3>
-                      <ul className="list-disc pl-5 space-y-1.5 text-sm font-semibold text-slate-900">
+                      <ul className="list-disc pl-5 space-y-2 text-base font-medium text-slate-800">
                         {note.decisions.map((item, i) => <li key={i}>{item}</li>)}
                       </ul>
                     </div>
                    )}
                    {note.tasks && note.tasks.length > 0 && (
                     <div>
-                      <h3 className="text-sm font-semibold text-slate-800 uppercase tracking-wider flex items-center gap-2 mb-3">
-                        <ListTodo className="w-4 h-4 text-blue-500" /> Tasks Identified
+                      <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-2 mb-4">
+                        <ListTodo className="w-4 h-4 text-brand-500" strokeWidth={2} /> Tasks Identified
                       </h3>
-                      <ul className="list-disc pl-5 space-y-1.5 text-sm font-semibold text-slate-900">
+                      <ul className="list-disc pl-5 space-y-2 text-base font-medium text-slate-800">
                         {note.tasks.map((item, i) => <li key={i}>{item}</li>)}
                       </ul>
                     </div>
                    )}
                    {(note.keywords && note.keywords.length > 0) || (note.tags && note.tags.length > 0) ? (
                     <div>
-                      <h3 className="text-sm font-semibold text-slate-800 uppercase tracking-wider flex items-center gap-2 mb-3">
-                        <Hash className="w-4 h-4 text-slate-400" /> Keywords & Tags
+                      <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-2 mb-4">
+                        <Hash className="w-4 h-4" strokeWidth={2} /> Keywords & Tags
                       </h3>
                       <div className="flex flex-wrap gap-2">
                         {Array.from(new Set([...(note.keywords || []), ...(note.tags || [])])).map((kw, i) => (
-                          <span key={i} className="px-3 py-1 bg-slate-100 text-slate-600 text-xs font-medium rounded-full">
+                          <span key={i} className="px-3.5 py-1.5 bg-white shadow-[0_2px_8px_rgb(0,0,0,0.04)] text-slate-700 text-xs font-bold tracking-wide rounded-full">
                             {kw}
                           </span>
                         ))}
@@ -425,17 +428,17 @@ export function TranscriptView({ note: initialNote, onBack }: TranscriptViewProp
                 <div className="flex flex-col gap-4 h-full">
                   <div className="flex-1 overflow-y-auto flex flex-col gap-4 pb-4">
                     {comments.map((comment, i) => (
-                      <div key={i} className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-semibold text-slate-900">{comment.userName}</span>
-                          <span className="text-xs text-slate-400">{new Date(comment.createdAt).toLocaleDateString()}</span>
+                      <div key={i} className="bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-5 rounded-[20px]">
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-sm font-bold text-slate-900">{comment.userName}</span>
+                          <span className="text-xs font-semibold text-slate-400">{new Date(comment.createdAt).toLocaleDateString()}</span>
                         </div>
-                        <p className="text-sm text-slate-700 leading-relaxed">{comment.text}</p>
+                        <p className="text-sm font-medium text-slate-700 leading-relaxed">{comment.text}</p>
                       </div>
                     ))}
                     {comments.length === 0 && (
-                      <div className="text-center p-8 bg-white border border-slate-100 border-dashed rounded-[16px]">
-                        <p className="text-sm text-slate-500">No comments yet. Start the conversation!</p>
+                      <div className="text-center p-10 bg-slate-50 rounded-[24px]">
+                        <p className="text-sm font-medium text-slate-500">No comments yet. Start the conversation!</p>
                       </div>
                     )}
                   </div>
@@ -447,14 +450,14 @@ export function TranscriptView({ note: initialNote, onBack }: TranscriptViewProp
                       onChange={(e) => setNewComment(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleAddComment()}
                       placeholder="Add a comment... (use @ to mention)"
-                      className="w-full bg-white border border-slate-200 rounded-xl pl-4 pr-12 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all shadow-sm"
+                      className="w-full bg-white shadow-[0_8px_30px_rgb(0,0,0,0.08)] rounded-[20px] pl-5 pr-14 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all font-medium text-slate-900"
                     />
                     <button 
                       onClick={handleAddComment}
                       disabled={!newComment.trim()}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-brand-500 text-white rounded-lg disabled:opacity-50 hover:bg-brand-600 transition-colors"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 p-2.5 bg-brand-600 text-white rounded-xl hover:bg-brand-500 transition-colors shadow-sm active:scale-95 disabled:opacity-50"
                     >
-                      <Send className="w-4 h-4" />
+                      <Send className="w-4 h-4" strokeWidth={2} />
                     </button>
                   </div>
                 </div>
@@ -462,14 +465,14 @@ export function TranscriptView({ note: initialNote, onBack }: TranscriptViewProp
 
               {activeTab === 'notes' && (
                 <div className="flex flex-col gap-4 h-full">
-                  <div className="flex items-center gap-2 text-sm font-semibold text-slate-800 uppercase tracking-wider">
-                    <Edit3 className="w-4 h-4 text-brand-500" /> Shared Notes
+                  <div className="flex items-center gap-2 text-sm font-semibold text-slate-500 uppercase tracking-wider">
+                    <Edit3 className="w-4 h-4 text-brand-500" strokeWidth={2} /> Shared Notes
                   </div>
                   <textarea
                     id="shared-notes-input"
                     value={userNotes}
                     onChange={handleNotesChange}
-                    className="w-full flex-1 min-h-[300px] bg-slate-50 border border-slate-100 rounded-xl p-4 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all resize-none"
+                    className="w-full flex-1 min-h-[300px] bg-slate-50 shadow-inner rounded-[20px] p-5 text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all resize-none"
                     placeholder="Type your notes here..."
                   />
                 </div>

@@ -46,96 +46,96 @@ export default function ProfileView() {
     );
   }
 
-  return (
-    <div className="flex-1 bg-slate-50 overflow-y-auto no-scrollbar pb-24">
-      <div className="pt-[max(env(safe-area-inset-top),3rem)] px-6 pb-6 bg-white sticky top-0 z-10 border-b border-slate-100">
-        <h1 className="font-display text-2xl font-semibold text-slate-900">Settings</h1>
-      </div>
-
-      <div className="p-4 md:p-6 max-w-3xl mx-auto">
-        {/* User Info Card */}
-        <div className="bg-white p-6 rounded-[24px] shadow-sm border border-slate-100 flex items-center gap-5 mb-8">
-          <div className="w-16 h-16 bg-brand-100 text-brand-600 rounded-full flex items-center justify-center text-xl font-bold uppercase">
-            {user?.displayName ? user.displayName.substring(0, 2) : (user?.email ? user.email.substring(0, 2) : 'U')}
-          </div>
-          <div className="flex-1 overflow-hidden">
-            <h2 className="text-lg font-semibold text-slate-900 truncate">{user?.displayName || 'User'}</h2>
-            <p className="text-sm text-slate-500 truncate">{user?.email}</p>
-          </div>
-          <button onClick={() => setActiveSection('profile')} className="px-4 py-2 bg-slate-100 text-slate-700 font-medium text-sm rounded-xl hover:bg-slate-200 transition-colors">
-            Edit
-          </button>
+    return (
+      <div className="flex-1 bg-slate-50 overflow-y-auto no-scrollbar pb-safe-bottom pb-24">
+        <div className="pt-[max(env(safe-area-inset-top),3rem)] px-6 pb-6 bg-slate-50/80 backdrop-blur-xl sticky top-0 z-10">
+          <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">Settings</h1>
         </div>
-
-        {/* Settings Sections */}
-        <div className="space-y-6">
-          <section>
-            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-2">Account & Preferences</h3>
-            <div className="bg-white rounded-[24px] shadow-sm border border-slate-100 overflow-hidden">
-              {sections.slice(0, 5).map((section, idx) => (
-                <div key={section.id}>
-                  <SettingsRow 
-                    icon={section.icon} 
-                    label={section.title} 
-                    onClick={() => setActiveSection(section.id)}
-                  />
-                  {idx < 4 && <div className="h-px bg-slate-100 ml-12" />}
-                </div>
-              ))}
+  
+        <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-6">
+          {/* User Info Card */}
+          <div className="bg-white p-6 rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex items-center gap-5">
+            <div className="w-16 h-16 bg-brand-100 text-brand-600 rounded-full flex items-center justify-center text-xl font-bold uppercase">
+              {user?.displayName ? user.displayName.substring(0, 2) : (user?.email ? user.email.substring(0, 2) : 'U')}
             </div>
-          </section>
-
-          <section>
-            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-2">Data & Privacy</h3>
-            <div className="bg-white rounded-[24px] shadow-sm border border-slate-100 overflow-hidden">
-              {sections.slice(5, 8).map((section, idx) => (
-                <div key={section.id}>
-                  <SettingsRow 
-                    icon={section.icon} 
-                    label={section.title} 
-                    onClick={() => setActiveSection(section.id)}
-                  />
-                  {idx < 2 && <div className="h-px bg-slate-100 ml-12" />}
-                </div>
-              ))}
+            <div className="flex-1 overflow-hidden">
+              <h2 className="text-lg font-semibold text-slate-900 truncate">{user?.displayName || 'User'}</h2>
+              <p className="text-sm text-slate-500 truncate">{user?.email}</p>
             </div>
-          </section>
-          
-          <section>
-            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-2">Billing</h3>
-            <div className="bg-white rounded-[24px] shadow-sm border border-slate-100 overflow-hidden">
-              <SettingsRow 
-                icon={sections[8].icon} 
-                label={sections[8].title} 
-                onClick={() => setActiveSection(sections[8].id)}
-              />
-            </div>
-          </section>
-
-          <section className="pt-4">
-            <div className="bg-white rounded-[24px] shadow-sm border border-red-100 overflow-hidden">
-               <button onClick={signOut} className="w-full flex items-center justify-between p-4 hover:bg-red-50 transition-colors">
-                  <div className="flex items-center gap-3 text-red-500">
-                    <LogOut className="w-5 h-5" />
-                    <span className="text-sm font-medium">Log Out</span>
+            <button onClick={() => setActiveSection('profile')} className="px-4 py-2 bg-slate-100 text-slate-700 font-medium text-sm rounded-xl hover:bg-slate-200 transition-colors active:scale-95">
+              Edit
+            </button>
+          </div>
+  
+          {/* Settings Sections */}
+          <div className="space-y-6">
+            <section>
+              <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 px-2">Account & Preferences</h3>
+              <div className="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
+                {sections.slice(0, 5).map((section, idx) => (
+                  <div key={section.id}>
+                    <SettingsRow 
+                      icon={section.icon} 
+                      label={section.title} 
+                      onClick={() => setActiveSection(section.id)}
+                    />
+                    {idx < 4 && <div className="h-px bg-slate-50 ml-12" />}
                   </div>
-               </button>
-            </div>
-          </section>
+                ))}
+              </div>
+            </section>
+  
+            <section>
+              <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 px-2">Data & Privacy</h3>
+              <div className="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
+                {sections.slice(5, 8).map((section, idx) => (
+                  <div key={section.id}>
+                    <SettingsRow 
+                      icon={section.icon} 
+                      label={section.title} 
+                      onClick={() => setActiveSection(section.id)}
+                    />
+                    {idx < 2 && <div className="h-px bg-slate-50 ml-12" />}
+                  </div>
+                ))}
+              </div>
+            </section>
+            
+            <section>
+              <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 px-2">Billing</h3>
+              <div className="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
+                <SettingsRow 
+                  icon={sections[8].icon} 
+                  label={sections[8].title} 
+                  onClick={() => setActiveSection(sections[8].id)}
+                />
+              </div>
+            </section>
+  
+            <section className="pt-2">
+              <div className="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
+                 <button onClick={signOut} className="w-full flex items-center justify-between p-4 hover:bg-red-50 transition-colors active:bg-red-100">
+                    <div className="flex items-center gap-3 text-red-500">
+                      <LogOut className="w-5 h-5" strokeWidth={2} />
+                      <span className="text-sm font-medium">Log Out</span>
+                    </div>
+                 </button>
+              </div>
+            </section>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
 }
 
 function SettingsRow({ icon, label, onClick }: { icon: React.ReactNode; label: string; onClick: () => void }) {
   return (
-    <button onClick={onClick} className="w-full flex items-center justify-between p-4 hover:bg-slate-50 transition-colors text-left">
+    <button onClick={onClick} className="w-full flex items-center justify-between p-4 hover:bg-slate-50 transition-colors text-left active:bg-slate-100">
       <div className="flex items-center gap-3">
         <div className="text-slate-400">{icon}</div>
         <span className="text-sm font-medium text-slate-700">{label}</span>
       </div>
-      <ChevronRight className="w-4 h-4 text-slate-300" />
+      <ChevronRight className="w-4 h-4 text-slate-300" strokeWidth={2} />
     </button>
   );
 }
@@ -146,22 +146,22 @@ function ProfileManagement({ user }: { user: any }) {
   const [name, setName] = useState(user?.displayName || '');
   return (
     <div className="space-y-6 max-w-xl mx-auto">
-      <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+      <div className="bg-white p-6 rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-4">
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Display Name</label>
-          <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full border border-slate-200 rounded-xl px-4 py-2 focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors" />
+          <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full shadow-[0_2px_8px_rgb(0,0,0,0.04)] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-shadow bg-slate-50/50" />
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
-          <input type="email" value={user?.email || ''} disabled className="w-full border border-slate-200 rounded-xl px-4 py-2 bg-slate-50 text-slate-500" />
+          <input type="email" value={user?.email || ''} disabled className="w-full rounded-xl px-4 py-3 bg-slate-100 text-slate-500" />
         </div>
-        <button className="w-full py-2.5 bg-brand-600 text-white rounded-xl font-medium hover:bg-brand-700 transition-colors mt-4">Save Changes</button>
+        <button className="w-full py-3 bg-brand-600 text-white rounded-xl font-medium shadow-[0_8px_30px_rgba(79,70,229,0.3)] active:scale-95 transition-all mt-4">Save Changes</button>
       </div>
-      <div className="bg-red-50 p-6 rounded-2xl border border-red-100 space-y-4">
-        <h3 className="text-red-800 font-medium flex items-center gap-2"><AlertTriangle className="w-5 h-5" /> Danger Zone</h3>
+      <div className="bg-red-50 p-6 rounded-[20px] border border-red-100 space-y-4">
+        <h3 className="text-red-800 font-medium flex items-center gap-2"><AlertTriangle className="w-5 h-5" strokeWidth={2} /> Danger Zone</h3>
         <p className="text-sm text-red-600/80">Permanently delete your account and all associated data. This action cannot be undone.</p>
-        <button className="px-4 py-2 bg-red-100 text-red-700 rounded-xl font-medium hover:bg-red-200 transition-colors flex items-center gap-2">
-          <Trash2 className="w-4 h-4" /> Delete Account
+        <button className="px-4 py-3 bg-red-100 text-red-700 rounded-xl font-medium active:scale-95 transition-all flex items-center justify-center w-full gap-2">
+          <Trash2 className="w-4 h-4" strokeWidth={2} /> Delete Account
         </button>
       </div>
     </div>

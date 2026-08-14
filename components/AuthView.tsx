@@ -113,10 +113,10 @@ export default function AuthView({ onAuthSuccess }: AuthViewProps) {
                 <p className="text-slate-500 max-w-[280px]">Your AI-powered memory. Capture, transcribe, and remember everything.</p>
               </div>
               <div className="flex flex-col gap-4 w-full max-w-sm mx-auto">
-                <button onClick={() => setAuthState('signup')} className="w-full py-4 bg-brand-600 text-white rounded-2xl font-medium shadow-lg shadow-brand-500/25 active:scale-[0.98] transition-all">
+                <button onClick={() => setAuthState('signup')} className="w-full py-4 bg-brand-600 text-white rounded-xl font-semibold shadow-[0_8px_30px_rgba(79,70,229,0.3)] active:scale-95 transition-all">
                   Get Started
                 </button>
-                <button onClick={() => setAuthState('login')} className="w-full py-4 bg-white text-slate-700 rounded-2xl font-medium border border-slate-200 active:bg-slate-50 active:scale-[0.98] transition-all">
+                <button onClick={() => setAuthState('login')} className="w-full py-4 bg-white text-slate-700 rounded-xl font-medium shadow-[0_2px_8px_rgb(0,0,0,0.04)] active:bg-slate-50 active:scale-95 transition-all">
                   I already have an account
                 </button>
               </div>
@@ -136,16 +136,16 @@ export default function AuthView({ onAuthSuccess }: AuthViewProps) {
                <form onSubmit={handleLogin} className="flex flex-col gap-4 flex-1">
                  <div className="relative">
                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                   <input required type="email" placeholder="Email address" value={email} onChange={e=>setEmail(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 pl-12 pr-4 focus:outline-none focus:border-brand-500 focus:bg-white transition-colors" />
+                   <input required type="email" placeholder="Email address" value={email} onChange={e=>setEmail(e.target.value)} className="w-full bg-white shadow-[0_2px_8px_rgb(0,0,0,0.04)] rounded-xl py-4 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-shadow" />
                  </div>
                  <div className="relative">
                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                   <input required type="password" placeholder="Password" value={password} onChange={e=>setPassword(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 pl-12 pr-4 focus:outline-none focus:border-brand-500 focus:bg-white transition-colors" />
+                   <input required type="password" placeholder="Password" value={password} onChange={e=>setPassword(e.target.value)} className="w-full bg-white shadow-[0_2px_8px_rgb(0,0,0,0.04)] rounded-xl py-4 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-shadow" />
                  </div>
                  <button type="button" onClick={() => { clearMessages(); setAuthState('forgot'); }} className="text-sm font-medium text-brand-600 self-end mt-1">Forgot password?</button>
                  
                  <div className="mt-8">
-                   <button disabled={loading} type="submit" className="w-full py-4 bg-brand-600 text-white rounded-2xl font-medium shadow-lg shadow-brand-500/25 active:scale-[0.98] transition-all disabled:opacity-70 flex justify-center items-center gap-2">
+                   <button disabled={loading} type="submit" className="w-full py-4 bg-brand-600 text-white rounded-xl font-semibold shadow-[0_8px_30px_rgba(79,70,229,0.3)] active:scale-95 transition-all disabled:opacity-70 flex justify-center items-center gap-2">
                      {loading ? 'Signing in...' : 'Sign In'} <ArrowRight className="w-5 h-5" />
                    </button>
                  </div>
@@ -155,7 +155,7 @@ export default function AuthView({ onAuthSuccess }: AuthViewProps) {
                    <span className="relative bg-white px-4 text-xs font-medium text-slate-400 uppercase tracking-widest">Or</span>
                  </div>
                  
-                 <button type="button" onClick={handleGoogleSignIn} disabled={loading} className="w-full py-4 bg-white text-slate-700 rounded-2xl font-medium border border-slate-200 active:bg-slate-50 active:scale-[0.98] transition-all flex items-center justify-center gap-3">
+                 <button type="button" onClick={handleGoogleSignIn} disabled={loading} className="w-full py-4 bg-white text-slate-700 rounded-xl font-medium shadow-[0_2px_8px_rgb(0,0,0,0.04)] active:bg-slate-50 active:scale-95 transition-all flex items-center justify-center gap-3">
                    <Chrome className="w-5 h-5" /> Continue with Google
                  </button>
                </form>
@@ -179,19 +179,19 @@ export default function AuthView({ onAuthSuccess }: AuthViewProps) {
                <form onSubmit={handleSignup} className="flex flex-col gap-4 flex-1">
                  <div className="relative">
                    <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                   <input required type="text" placeholder="Full Name" value={name} onChange={e=>setName(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 pl-12 pr-4 focus:outline-none focus:border-brand-500 focus:bg-white transition-colors" />
+                   <input required type="text" placeholder="Full Name" value={name} onChange={e=>setName(e.target.value)} className="w-full bg-white shadow-[0_2px_8px_rgb(0,0,0,0.04)] rounded-xl py-4 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-shadow" />
                  </div>
                  <div className="relative">
                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                   <input required type="email" placeholder="Email address" value={email} onChange={e=>setEmail(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 pl-12 pr-4 focus:outline-none focus:border-brand-500 focus:bg-white transition-colors" />
+                   <input required type="email" placeholder="Email address" value={email} onChange={e=>setEmail(e.target.value)} className="w-full bg-white shadow-[0_2px_8px_rgb(0,0,0,0.04)] rounded-xl py-4 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-shadow" />
                  </div>
                  <div className="relative">
                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                   <input required type="password" placeholder="Password (min 6 chars)" value={password} onChange={e=>setPassword(e.target.value)} minLength={6} className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 pl-12 pr-4 focus:outline-none focus:border-brand-500 focus:bg-white transition-colors" />
+                   <input required type="password" placeholder="Password (min 6 chars)" value={password} onChange={e=>setPassword(e.target.value)} minLength={6} className="w-full bg-white shadow-[0_2px_8px_rgb(0,0,0,0.04)] rounded-xl py-4 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-shadow" />
                  </div>
                  
                  <div className="mt-8">
-                   <button disabled={loading} type="submit" className="w-full py-4 bg-brand-600 text-white rounded-2xl font-medium shadow-lg shadow-brand-500/25 active:scale-[0.98] transition-all disabled:opacity-70 flex justify-center items-center gap-2">
+                   <button disabled={loading} type="submit" className="w-full py-4 bg-brand-600 text-white rounded-xl font-semibold shadow-[0_8px_30px_rgba(79,70,229,0.3)] active:scale-95 transition-all disabled:opacity-70 flex justify-center items-center gap-2">
                      {loading ? 'Creating...' : 'Sign Up'} <ArrowRight className="w-5 h-5" />
                    </button>
                  </div>
@@ -217,11 +217,11 @@ export default function AuthView({ onAuthSuccess }: AuthViewProps) {
                <form onSubmit={handleForgotPassword} className="flex flex-col gap-4 flex-1">
                  <div className="relative">
                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                   <input required type="email" placeholder="Email address" value={email} onChange={e=>setEmail(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 pl-12 pr-4 focus:outline-none focus:border-brand-500 focus:bg-white transition-colors" />
+                   <input required type="email" placeholder="Email address" value={email} onChange={e=>setEmail(e.target.value)} className="w-full bg-white shadow-[0_2px_8px_rgb(0,0,0,0.04)] rounded-xl py-4 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-shadow" />
                  </div>
                  
                  <div className="mt-8">
-                   <button disabled={loading} type="submit" className="w-full py-4 bg-brand-600 text-white rounded-2xl font-medium shadow-lg shadow-brand-500/25 active:scale-[0.98] transition-all disabled:opacity-70 flex justify-center items-center gap-2">
+                   <button disabled={loading} type="submit" className="w-full py-4 bg-brand-600 text-white rounded-xl font-semibold shadow-[0_8px_30px_rgba(79,70,229,0.3)] active:scale-95 transition-all disabled:opacity-70 flex justify-center items-center gap-2">
                      {loading ? 'Sending...' : 'Send Reset Link'} <ArrowRight className="w-5 h-5" />
                    </button>
                  </div>

@@ -189,11 +189,11 @@ export default function RecordingView({ onClose, onSave }: RecordingViewProps) {
     <div className="flex-1 bg-slate-900 flex flex-col h-full absolute inset-0 z-50 overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between px-6 pb-6 pt-[max(env(safe-area-inset-top),1.5rem)]">
-        <button onClick={onClose} disabled={recordingState === 'uploading'} className="p-2 bg-slate-800/50 rounded-full text-slate-300 hover:text-white transition-colors disabled:opacity-50">
-          <X className="w-5 h-5" />
+        <button onClick={onClose} disabled={recordingState === 'uploading'} className="p-2 bg-slate-800/50 rounded-full text-slate-300 hover:text-white transition-colors disabled:opacity-50 active:scale-95">
+          <X className="w-5 h-5" strokeWidth={2} />
         </button>
         {recordingState !== 'uploading' && (
-          <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium border ${recordingState === 'paused' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'}`}>
+          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase border ${recordingState === 'paused' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'}`}>
             <div className={`w-2 h-2 rounded-full ${recordingState === 'paused' ? 'bg-amber-500' : 'bg-red-500 animate-pulse'}`} />
             {recordingState === 'paused' ? 'PAUSED' : 'RECORDING'}
           </div>
@@ -206,7 +206,7 @@ export default function RecordingView({ onClose, onSave }: RecordingViewProps) {
         <div className="absolute top-0 inset-x-0 h-12 bg-gradient-to-b from-slate-900 to-transparent z-10 pointer-events-none" />
         
         {recordingState !== 'uploading' ? (
-          <div className="flex flex-col gap-4 text-xl md:text-2xl font-display font-medium leading-relaxed tracking-tight text-slate-300">
+          <div className="flex flex-col gap-4 text-xl md:text-3xl font-semibold leading-relaxed tracking-tight text-slate-300">
             <AnimatePresence>
               {transcriptSegments.map((text, i) => (
                 <motion.div
@@ -234,30 +234,30 @@ export default function RecordingView({ onClose, onSave }: RecordingViewProps) {
               animate={{ scale: 1, opacity: 1 }}
               className="text-center"
             >
-               <h3 className="text-2xl font-display font-semibold text-white mb-2">Saving & Uploading</h3>
-               <p className="text-slate-400 mb-8">Processing your audio with AI...</p>
+               <h3 className="text-3xl font-semibold text-white mb-3 tracking-tight">Saving & Uploading</h3>
+               <p className="text-slate-400 mb-8 font-medium">Processing your audio with AI...</p>
                
-               <div className="w-64 h-2 bg-slate-800 rounded-full overflow-hidden mb-4 mx-auto">
+               <div className="w-64 h-2 bg-slate-800 rounded-full overflow-hidden mb-4 mx-auto shadow-inner">
                  <motion.div 
                    className="h-full bg-brand-500"
                    initial={{ width: 0 }}
                    animate={{ width: `${Math.min(100, uploadProgress)}%` }}
                  />
                </div>
-               <div className="text-sm font-medium text-slate-300">{Math.min(100, Math.floor(uploadProgress))}%</div>
+               <div className="text-sm font-semibold text-slate-300">{Math.min(100, Math.floor(uploadProgress))}%</div>
             </motion.div>
           </div>
         )}
       </div>
 
       {/* Controls Container */}
-      <div className="bg-slate-800 rounded-t-[40px] pt-8 pb-[max(env(safe-area-inset-bottom),2.5rem)] px-8 flex flex-col items-center shadow-[0_-10px_40px_rgba(0,0,0,0.3)] relative">
-        <div className="text-4xl font-display font-light text-white mb-8 tabular-nums tracking-wider">
+      <div className="bg-slate-800/80 backdrop-blur-3xl border-t border-slate-700/50 rounded-t-[40px] pt-8 pb-[max(env(safe-area-inset-bottom),2.5rem)] px-8 flex flex-col items-center shadow-[0_-20px_60px_rgba(0,0,0,0.2)] relative">
+        <div className="text-5xl font-light text-white mb-8 tabular-nums tracking-widest">
           {formatTime(time)}
         </div>
 
         {/* Real Audio Visualizer */}
-        <div className="flex items-center justify-center gap-1 h-16 mb-10 w-full max-w-[200px]">
+        <div className="flex items-center justify-center gap-1.5 h-16 mb-10 w-full max-w-[200px]">
           {audioVolumes.map((vol, i) => {
             const height = recordingState === 'recording' ? Math.max(4, (vol / 255) * 48) : 4;
             return (
@@ -276,15 +276,15 @@ export default function RecordingView({ onClose, onSave }: RecordingViewProps) {
           <button 
             onClick={handlePauseResume}
             disabled={recordingState === 'uploading'}
-            className="w-14 h-14 rounded-full bg-slate-700 flex items-center justify-center text-white hover:bg-slate-600 transition-colors disabled:opacity-50"
+            className="w-14 h-14 rounded-full bg-slate-700/80 backdrop-blur-lg border border-slate-600/50 flex items-center justify-center text-white hover:bg-slate-600 transition-all disabled:opacity-50 active:scale-95 shadow-[0_8px_30px_rgb(0,0,0,0.12)]"
           >
-            {recordingState === 'paused' ? <Mic className="w-6 h-6" /> : <Pause className="w-6 h-6 fill-current" />}
+            {recordingState === 'paused' ? <Mic className="w-6 h-6" strokeWidth={2} /> : <Pause className="w-6 h-6 fill-current" strokeWidth={2} />}
           </button>
           
           <button 
             onClick={handleStop}
             disabled={recordingState === 'uploading'}
-            className="w-20 h-20 rounded-[24px] bg-brand-600 flex items-center justify-center text-white hover:bg-brand-500 transition-colors shadow-lg shadow-brand-500/20 disabled:opacity-50"
+            className="w-20 h-20 rounded-[32px] bg-brand-600 flex items-center justify-center text-white hover:bg-brand-500 transition-all shadow-[0_8px_30px_rgba(79,70,229,0.3)] disabled:opacity-50 active:scale-95"
           >
             {recordingState === 'uploading' ? (
               <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }}>
